@@ -5,7 +5,7 @@ import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
-public class WordStacksV3 {
+public class WordStacks {
 
     public static void main(String[] args) {
         System.out.println("¿Desea empezar el juego en modo de pruebas?");
@@ -14,6 +14,7 @@ public class WordStacksV3 {
         String response = keyboard.nextLine();
         String[] dictionary = getDictionary(response);
 
+        //Start to play
         play(10, dictionary, keyboard);
     }
 
@@ -69,7 +70,7 @@ public class WordStacksV3 {
      *
      * @param length             the lenght of the random words we want to have
      * @param originalDictionary the original dictionary which we are going to choose @param lenght words
-     * @param keyboard           the {@link java.util.Scanner} object we have created
+     * @param keyboard           the {@link Scanner} object we have created
      */
     private static void play(int length, String[] originalDictionary, Scanner keyboard) {
         //The random words dictionary
@@ -87,10 +88,10 @@ public class WordStacksV3 {
         System.out.println(Arrays.toString(randomDictionary));
 
         //The file which we save locally the user record
-        final File dataFile = new File("C://Users//luna//Documents/data.txt");
+        final File dataFile = new File("data.txt");
 
         //Create [GameMatrix] instance
-        GameMatrixV3 gameMatrix = new GameMatrixV3();
+        GameMatrix gameMatrix = new GameMatrix();
 
         //Now we start the game generating the matrix
         char[][] matrix = gameMatrix.startGame(10, 10, randomDictionary, keyboard);
@@ -106,6 +107,7 @@ public class WordStacksV3 {
 
             if (operationData.length == 1) {
                 String typeClue = operationData[0];
+                //TODO
                 switch (typeClue) {
                     case "LET":
                         break;
@@ -117,19 +119,19 @@ public class WordStacksV3 {
             } else if (operationData.length == 4) {
                 int rowIndex = Integer.parseInt(operationData[0]);
                 int columnIndex = Integer.parseInt(operationData[1]);
-                GameMatrixV3.TYPE type = null;
+                GameMatrix.TYPE type = null;
                 switch (operationData[2]) {
                     case "N":
-                        type = GameMatrixV3.TYPE.N;
+                        type = GameMatrix.TYPE.N;
                         break;
                     case "S":
-                        type = GameMatrixV3.TYPE.S;
+                        type = GameMatrix.TYPE.S;
                         break;
                     case "E":
-                        type = GameMatrixV3.TYPE.E;
+                        type = GameMatrix.TYPE.E;
                         break;
                     case "O":
-                        type = GameMatrixV3.TYPE.O;
+                        type = GameMatrix.TYPE.O;
                         break;
                 }
                 int lenght = Integer.parseInt(operationData[3]);
@@ -163,6 +165,7 @@ public class WordStacksV3 {
                 randomWordsList = RandomUtils.getRandomList(originalDictionary, randomDictionary.length);
                 randomWordsList.toArray(randomDictionary);
                 System.out.println("new randomWordsArray " + Arrays.toString(randomDictionary));
+                //TODO bug fix
                 play(randomDictionary.length, randomDictionary, keyboard);
             }
         } else {
@@ -171,15 +174,16 @@ public class WordStacksV3 {
             System.out.println("No hemos podido encontrar palabras legibles en el tablero");
             System.out.println("Generaremos otra nueva matriz");
             String[] restWordArray = restWordsList.toArray(new String[0]);
+            //TODO bug fix
             play(restWordArray.length, restWordArray, keyboard);
         }
     }
 
 }
 
-class GameMatrixV3 {
+class GameMatrix {
 
-    public GameMatrixV3() {
+    public GameMatrix() {
         //DO NOTHING
     }
 
@@ -190,14 +194,34 @@ class GameMatrixV3 {
     }
 
 
+    /**
+     * Method that returns the last user record saved
+     *
+     * @param file the record {@link File} object we want to read into
+     * @return last user record saved
+     */
     public int getLastRecord(File file) {
         return FileUtils.getRecordInFile(file);
     }
 
+    /**
+     * Method that writes the record to a file
+     *
+     * @param file   file the record {@link File} object we want to write into
+     * @param record the record we want to write
+     */
     public void writeRecord(File file, int record) {
         FileUtils.writeRecordInFile(file, record);
     }
 
+    /**
+     * Method that generates the game matrix
+     *
+     * @param rowsSize    the number of rows the matrix has
+     * @param columnsSize the number of columns the matrix has
+     * @param dictionary  the dictionary provided to generate the matrix
+     * @return the matrix
+     */
     private char[][] generateMatrix(int rowsSize, int columnsSize, String[] dictionary) {
         char[][] matrix = new char[rowsSize][columnsSize];
 
@@ -230,7 +254,7 @@ class GameMatrixV3 {
         }
 
         if (type == TYPE.ROW) {
-            System.out.println("Insert row words : " + word);
+            //System.out.println("Insert row words : " + word);
             int count = 0;
             for (int columnIndex = 0; columnIndex < matrix[0].length; columnIndex++) {
                 boolean possibleInsertLetterToColumn = isPossibleInsertWordToColumn(matrix, columnIndex, 1);
@@ -252,7 +276,7 @@ class GameMatrixV3 {
                                 .collect(Collectors.toList());
                         int randomRowPosition = emptyPositionsList.get(0);
                         matrix[randomRowPosition][columnIndex] = word.charAt(wordsCharsCount);
-                        System.out.println("Inserted : " + word.charAt(wordsCharsCount) + " at (" + randomRowPosition + "," + columnIndex + ")");
+                       //System.out.println("Inserted : " + word.charAt(wordsCharsCount) + " at (" + randomRowPosition + "," + columnIndex + ")");
                         wordsCharsCount++;
                     }
                     columnIndex++;
@@ -264,7 +288,7 @@ class GameMatrixV3 {
             }
 
         } else if (type == TYPE.COLUMN) {
-            System.out.println("Insert column words : " + word);
+            //System.out.println("Insert column words : " + word);
             //int count = 0;
             boolean isPossibleToInsert = false;
             int columnIndex = 0;
@@ -287,7 +311,7 @@ class GameMatrixV3 {
                             .collect(Collectors.toList());
                     int firstPosition = emptyPositionsList.get(0);
                     matrix[firstPosition][columnIndex] = word.charAt(wordsCharsCount);
-                    System.out.println("Inserted : " + word.charAt(wordsCharsCount) + " at (" + firstPosition + "," + columnIndex + ")");
+                    //System.out.println("Inserted : " + word.charAt(wordsCharsCount) + " at (" + firstPosition + "," + columnIndex + ")");
                     wordsCharsCount++;
                 }
             } else {
@@ -318,6 +342,7 @@ class GameMatrixV3 {
         return matrix;
     }
 
+    //TODO
     private void translation(char[][] matrix) {
         List<Integer> columnEmptysList = new ArrayList<>();
         for (int columnIndex = 0; columnIndex < matrix[0].length; columnIndex++) {
@@ -353,7 +378,7 @@ class GameMatrixV3 {
     }
 
 
-    public List<String> readableWordsList(char[][] matrix, List<String> dictionary){
+    private List<String> readableWordsList(char[][] matrix, List<String> dictionary) {
         List<String> readableWordsList = new ArrayList<>();
 
         for (int rowIndex = 0; rowIndex < matrix.length; rowIndex++) {
@@ -385,7 +410,7 @@ class GameMatrixV3 {
 
     public boolean hasReadableWords(char[][] matrix, List<String> dictionary) {
 
-        return !readableWordsList(matrix,dictionary).isEmpty();
+        return !readableWordsList(matrix, dictionary).isEmpty();
        /* List<String> wordsList = new ArrayList<>(Arrays.asList(dictionary));
         boolean result = false;
         for (int rowIndex = 0; rowIndex < matrix.length; rowIndex++) {
@@ -516,7 +541,7 @@ class GameMatrixV3 {
     }
 
 
-    //TODO need to fix : indexOutOfRange
+    //TODO bug fix : indexOutOfRangeException
     public Object[] getOperationDataArray(char[][] matrix, int startRowIndex, int startColumnIndex, TYPE type, int lenght) {
         String dataWord = "";
         int startIndex = 0;
@@ -558,6 +583,7 @@ class GameMatrixV3 {
         return new Object[]{startIndex, selectedWord};
     }
 
+    //TODO
     public int getAClue(String clue, int record) {
         String firstClueWord;
         switch (clue) {
@@ -578,7 +604,6 @@ class GameMatrixV3 {
     }
 
     public char[][] doOperation(char[][] matrix, int startRowIndex, int startColumnIndex, TYPE type, int lenght) {
-
         Object[] operationDataArray = getOperationDataArray(matrix, startRowIndex, startColumnIndex, type, lenght);
         int startIndex = (int) operationDataArray[0];
         String selectedWord = (String) operationDataArray[1];
@@ -860,7 +885,7 @@ class FileUtils {
                     int nineAsciiIndex = 57;
                     if (firstLetter > ceroAsciiIndex && firstLetter < nineAsciiIndex) {
                         record = Integer.parseInt(nextString);
-                        System.out.println("record saved : " + record);
+                        //System.out.println("record saved : " + record);
                     }
                 }
 

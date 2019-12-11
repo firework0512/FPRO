@@ -1,5 +1,6 @@
 package com.wei.fpro.practicas;
 
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
@@ -48,6 +49,9 @@ public class WordStacksV2 {
             "FEO",
             "FAX",
             "WIFI",
+            "SAL",
+            "MAR",
+            "PAN",
     };
 
     private static final String[] CONSUMER_DICTIONARY_ENG = {
@@ -63,13 +67,35 @@ public class WordStacksV2 {
         System.out.println(Arrays.toString(randomDictionary));
 
         GameMatrix gameMatrix = new GameMatrix(10, 10, randomDictionary);
-        gameMatrix.printMatrix();
+        //gameMatrix.printMatrix();
 
         //gameMatrix.gravity();
         //gameMatrix.printMatrix();
         System.out.println();
         System.out.println();
 
+
+        String operation = keyboard.nextLine();
+        operation = operation.toUpperCase(Locale.ROOT);
+        GameMatrix.TYPE type = null;
+        int rowIndex = Integer.parseInt(String.valueOf(operation.charAt(0)));
+        int columnIndex = Integer.parseInt(String.valueOf(operation.charAt(1)));
+        switch (operation.charAt(2)) {
+            case 'N':
+                type = GameMatrix.TYPE.N;
+                break;
+            case 'S':
+                type = GameMatrix.TYPE.S;
+                break;
+            case 'E':
+                type = GameMatrix.TYPE.E;
+                break;
+            case 'O':
+                type = GameMatrix.TYPE.O;
+                break;
+        }
+        int lenght = Integer.parseInt(String.valueOf(operation.charAt(3)));
+        gameMatrix.tryEliminateWord(rowIndex, columnIndex, type, lenght);
     }
 
     /**
@@ -110,8 +136,10 @@ public class WordStacksV2 {
 class GameMatrix {
 
     private final String[] dictionary;
-    private List<String> insertedDictionary;
-
+    private List<String> insertedDictionary = new ArrayList<>();
+    private List<String> eliminatedDictionary = new ArrayList<>();
+    private final File dataFile = new File("C://Users//luna//Documents/data.txt");
+    private int record = 0;
     private char[][] matrix;
 
 
@@ -121,9 +149,25 @@ class GameMatrix {
 
     public GameMatrix(int rowsSize, int columnsSize, String[] dictionary) {
         this.dictionary = dictionary;
-        this.insertedDictionary = new ArrayList<>(Arrays.asList(dictionary));
         this.matrix = generateMatrix(rowsSize, columnsSize);
+        getLastRecord();
+        printMatrix();
         // this.matrix = NuevaMatriz.nuevaMatriz(10, 10, dictionary);
+    }
+
+    private void getLastRecord() {
+        if (dataFile.exists())
+            try {
+                Scanner scanner = new Scanner(dataFile);
+                scanner.useDelimiter(":");
+                scanner.next();
+                String recordString = scanner.next();
+                this.record = Integer.parseInt(recordString.trim());
+                System.out.println("record saved : " + this.record);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+
     }
 
     private char[][] generateMatrix(int rowsSize, int columnsSize) {
@@ -147,7 +191,7 @@ class GameMatrix {
             this.matrix = insertInAMatrix(word, type);
         }
         gravity();
-        return matrix;
+        return this.matrix;
     }
 
     private char[][] insertInAMatrix(String word, TYPE type) {
@@ -186,12 +230,8 @@ class GameMatrix {
                     }
                     columnIndex++;
                 }
-                if (needReversed) {
-                    insertedDictionary.remove(reverseString(word));
-                } else {
-                    insertedDictionary.remove(word);
-                }
 
+                insertedDictionary.add(word);
             } else {
                 //Call the same method but this time we know that it´s impossible to insert the word in a row
                 //So, we insert the word in a column
@@ -304,50 +344,123 @@ class GameMatrix {
             List<Integer> emptySpacesPositionsList = getEmptySpacesPositionsFromAStringV2(columnString);
             if (!emptySpacesPositionsList.isEmpty()) {
                 //System.out.println("Gravity start, columnWord : " + columnString);
-                String columnStringWithEmptySpacesRemoved = columnString.replace(" ", "");
+                String columnWordWithoutSpaces = columnString.replace(" ", "");
                 //System.out.println("Gravity start, columnWord without spaces : " + columnStringWithEmptySpacesRemoved);
-                int shouldLetterStartPosition = (this.matrix[0].length - columnStringWithEmptySpacesRemoved.length());
+                int shouldLetterStartIndex = (this.matrix[0].length - columnWordWithoutSpaces.length());
                 //System.out.println("Gravity start, should start position : " + shouldLetterStartPosition);
-                insertColumnWordFromStartPosition(shouldLetterStartPosition, columnIndex, columnStringWithEmptySpacesRemoved);
+                insertColumnWordFromPosition(0, columnIndex, generateEmptySpacesString(shouldLetterStartIndex));
+                insertColumnWordFromPosition(shouldLetterStartIndex, columnIndex, columnWordWithoutSpaces);
             }
         }
     }
 
-    private void translation(){
-       /* List<Integer> columnEmptysList = new ArrayList<>();
+    private void translation() {
+        List<Integer> columnEmptysList = new ArrayList<>();
         for (int columnIndex = 0; columnIndex < this.matrix[0].length; columnIndex++) {
             String columnWord = convertAColumnDatatoWord(columnIndex);
             int spaces = getNumberOfSpacesOfAString(columnWord);
-            if(spaces == this.matrix[0].length){
+            if (spaces == this.matrix[0].length) {
                 columnEmptysList.add(columnIndex);
             }
         }
-        if(!columnEmptysList.isEmpty()){
-            int shouldEndColumnIndex = this.matrix[0].length-columnEmptysList.size();
+        if (!columnEmptysList.isEmpty()) {
+            int shouldEndColumnIndex = this.matrix[0].length - columnEmptysList.size();
 
             for (int columnIndex = 0; columnIndex <= shouldEndColumnIndex; columnIndex++) {
-                if(!columnEmptysList.contains(columnIndex)){
+                if (!columnEmptysList.contains(columnIndex)) {
 
                 }
             }
-        }*/
+        }
     }
 
 
-    private void insertColumnWordFromStartPosition(int startPosition, int columnIndex, String word) {
-        String columnWord = convertAColumnDatatoWord(columnIndex);
-        //System.out.println("columWord : " + columnWord);
-        int spacesAvailable = getNumberOfSpacesOfAString(columnWord);
-        //System.out.println("spaces : " + spacesAvailable);
-        //System.out.println("word lenght : " + word.length());
-        if (spacesAvailable < this.matrix[0].length - word.length()) {
-            throw new UnsupportedOperationException("Hey! You have comitted a mistake!! We don´t have enough empty spaces to insert!!!");
+    public void tryEliminateWord(int startRowIndex, int startColumnIndex, TYPE type, int lenght) {
+        String dataWord = "";
+        int startIndex = 0;
+        int finalIndex = 0;
+        switch (type) {
+            case N:
+                dataWord = convertAColumnDatatoWord(startColumnIndex);
+                startIndex = (startRowIndex - lenght) + 1;
+                finalIndex = startRowIndex + 1;
+                break;
+            case S:
+                dataWord = convertAColumnDatatoWord(startColumnIndex);
+                startIndex = startRowIndex;
+                finalIndex = startRowIndex + lenght;
+                break;
+            case E:
+                dataWord = convertARowDatatoWord(startRowIndex);
+                startIndex = startColumnIndex;
+                finalIndex = startColumnIndex + lenght;
+                break;
+            case O:
+                dataWord = convertARowDatatoWord(startRowIndex);
+                startIndex = startColumnIndex - lenght + 1;
+                finalIndex = startColumnIndex + 1;
+                break;
         }
+        //System.out.println("startIndex " + startIndex);
+        //System.out.println("finalIndex " + finalIndex);
+        String selectedWord = dataWord.substring(startIndex, finalIndex);
+        System.out.println("selected word : " + selectedWord);
+        String spacesString = generateEmptySpacesString(selectedWord.length());
+        List<String> dictionary = new ArrayList<>(Arrays.asList(this.dictionary));
+        if (this.insertedDictionary.contains(selectedWord)) {
+            this.eliminatedDictionary.add(selectedWord);
+            switch (type) {
+                case N:
+                case S:
+                    insertColumnWordFromPosition(startIndex, startColumnIndex, spacesString);
+                    break;
+                case E:
+                case O:
+                    insertRowWordFromPosition(startRowIndex, startIndex, spacesString);
+                    break;
+            }
+        } else if (dictionary.contains(selectedWord) || dictionary.contains(reverseString(selectedWord))) {
 
-        int startRowIndex = startPosition;
-        for (int rowIndx = 0; rowIndx < startRowIndex; rowIndx++) {
-            this.matrix[rowIndx][columnIndex] = ' ';
+        } else {
+            //Another try to get an information
+            getInformation();
         }
+        gravity();
+        updateRecord(selectedWord.length());
+        printMatrix();
+    }
+
+    private void updateRecord(int lenght) {
+        record += lenght;
+        Writer wr = null;
+        try {
+            wr = new FileWriter(dataFile);
+            wr.write("LastRecord : " + record);
+            wr.flush();
+            wr.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void startGame() {
+        getInformation();
+    }
+
+    //TODO
+    private void getInformation() {
+        printMatrix();
+    }
+
+
+    private void insertRowWordFromPosition(int rowIndex, int startColumnIndex, String word) {
+        for (int letterIndex = 0; letterIndex < word.length(); letterIndex++) {
+            this.matrix[rowIndex][startColumnIndex] = word.charAt(letterIndex);
+            startColumnIndex++;
+        }
+    }
+
+    private void insertColumnWordFromPosition(int startRowIndex, int columnIndex, String word) {
         for (int letterIndex = 0; letterIndex < word.length(); letterIndex++) {
             this.matrix[startRowIndex][columnIndex] = word.charAt(letterIndex);
             startRowIndex++;
@@ -442,11 +555,11 @@ class GameMatrix {
     private List<Integer> getEmptySpacesPositionsFromAStringV2(String word) {
         List<Integer> emptySpacesPositionList = new ArrayList<>();
         int emptySpaceIndex = word.indexOf(" ");
-        int cachedIndex = emptySpaceIndex;
+        int lastIndex = emptySpaceIndex;
 
         if (emptySpaceIndex != -1) {
-            while ((emptySpaceIndex = word.indexOf(" ", cachedIndex)) != -1) {
-                cachedIndex = emptySpaceIndex + 1;
+            while ((emptySpaceIndex = word.indexOf(" ", lastIndex)) != -1) {
+                lastIndex = emptySpaceIndex + 1;
                 emptySpacesPositionList.add(emptySpaceIndex);
             }
         }
@@ -524,17 +637,6 @@ class GameMatrix {
         return whiteSpacesCount;
     }
 
-    public int getNumberOfLettresOfAString(String data) {
-        int lettresCount = 0;
-        for (char lettre :
-                data.toCharArray()) {
-            if (!Character.isWhitespace(lettre)) lettresCount++;
-
-        }
-        return lettresCount;
-    }
-
-
     private String convertAColumnDatatoWord(int columIndex) {
         StringBuilder columnWord = new StringBuilder();
 
@@ -562,7 +664,7 @@ class GameMatrix {
     }
 
     /**
-     * Method that fill the matrix with empty spaces
+     * Method that fills the matrix with empty spaces
      */
     private void fillMatrixWithEmptySpaces() {
         for (int rowIndex = 0; rowIndex < this.matrix.length; rowIndex++) {
@@ -576,26 +678,23 @@ class GameMatrix {
      * Method that prints the game matrix with coordinates
      */
     public void printMatrix() {
-        /*for (char[] chars : this.matrix) {
-            for (char aChar : chars) {
-                System.out.print(aChar + " ");
-            }
-
+        if (this.matrix != null) {
             System.out.println();
-        }*/
-
-        System.out.println();
-        System.out.println();
-        System.out.println();
-
-        char[][] clonedMatrix = getMatrixWithCoordinates();
-
-        for (char[] chars : clonedMatrix) {
-            for (char aChar : chars) {
-                System.out.print(aChar + " ");
-            }
-
+            System.out.println("Record : " + record);
             System.out.println();
+
+            char[][] clonedMatrix = getMatrixWithCoordinates();
+
+            for (char[] chars : clonedMatrix) {
+                for (char aChar : chars) {
+                    System.out.print(aChar + " ");
+                }
+
+                System.out.println();
+            }
+        } else {
+            generateMatrix(10, 10);
+            printMatrix();
         }
     }
 
@@ -609,7 +708,7 @@ class GameMatrix {
         int columCount = 0;
         char[][] coordinatedMatrix = new char[this.matrix.length + 2][this.matrix[0].length + 2];
 
-        System.out.println("Rows : " + coordinatedMatrix.length + " Colums : " + coordinatedMatrix[0].length);
+        //System.out.println("Rows : " + coordinatedMatrix.length + " Colums : " + coordinatedMatrix[0].length);
 
         for (int rowIndex = 1; rowIndex <= this.matrix.length; rowIndex++) {
             char numberInAscci = (char) (rowCount + '0');
@@ -636,16 +735,28 @@ class GameMatrix {
      * @param word the string provided to be reversed
      * @return word but reversed
      */
-    public static String reverseString(String word) {
+    private String reverseString(String word) {
         StringBuilder reversedString = new StringBuilder(word);
         reversedString.reverse();
         return reversedString.toString();
+    }
+
+    private String generateEmptySpacesString(int lenght) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (int startIndex = 0; startIndex < lenght; startIndex++) {
+            stringBuilder.append(" ");
+        }
+        return stringBuilder.toString();
     }
 
 
     public enum TYPE {
         ROW,
         COLUMN,
+        N,
+        S,
+        E,
+        O,
     }
 }
 

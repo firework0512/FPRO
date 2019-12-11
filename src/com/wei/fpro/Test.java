@@ -16,26 +16,6 @@ class Test {
 
     }
 
-    //Supose that the list is ordered
-    void parse2(int[] a) {
-        int start = a[0];
-        int next = a[0];
-        int count = 0;
-        for (int index = 0; index <= a.length-1; index++) {
-
-            start = a[index];
-            if(index!=a.length-1){
-                next = a[index];
-            }else{
-                next = a[index+1];
-            }
-            if (next-start == 1){
-                count++;
-            }
-        }
-    }
-
-
     void parse(int[] a) {
         List<Pair<Integer,Integer>> dataList = new ArrayList<>();
 

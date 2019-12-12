@@ -13,7 +13,6 @@ public class WordStacks {
         Scanner keyboard = new Scanner(System.in);
         String response = keyboard.nextLine();
         String[] dictionary = getDictionary(response);
-
         int lenght = 10;
         //Start to play
         play(lenght, dictionary, keyboard);
@@ -103,7 +102,7 @@ public class WordStacks {
         GameMatrix gameMatrix = new GameMatrix();
 
         //Now we start the game generating the matrix
-        char[][] matrix = gameMatrix.startGame(10, 10, randomDictionary, keyboard);
+        char[][] matrix = gameMatrix.startGame(10, 10, randomDictionary);
 
         //Get the last record
         int record = gameMatrix.getLastRecord(dataFile);
@@ -180,7 +179,7 @@ class GameMatrix {
         //DO NOTHING
     }
 
-    public char[][] startGame(int rowsSize, int columnsSize, String[] dictionary, Scanner scanner) {
+    public char[][] startGame(int rowsSize, int columnsSize, String[] dictionary) {
         char[][] matrix = generateMatrix(rowsSize, columnsSize, dictionary);
         gravity(matrix);
         return matrix;
@@ -233,12 +232,12 @@ class GameMatrix {
             } else if (randomNumber == 1) {
                 type = TYPE.COLUMN;
             }
-            matrix = insertInAMatrix(matrix, word, type);
+            insertInAMatrix(matrix, word, type);
         }
         return matrix;
     }
 
-    private char[][] insertInAMatrix(char[][] matrix, String word, TYPE type) {
+    private void insertInAMatrix(char[][] matrix, String word, TYPE type) {
         boolean needReversed = RandomUtils.generateRandomBoolean();
 
         //We reverse the word
@@ -314,11 +313,10 @@ class GameMatrix {
             }
         }
 
-        return matrix;
     }
 
 
-    private char[][] gravity(char[][] matrix) {
+    private void gravity(char[][] matrix) {
         for (int columnIndex = 0; columnIndex < matrix[0].length; columnIndex++) {
             String columnString = convertAColumnDatatoWord(matrix, columnIndex);
             List<Integer> emptySpacesPositionsList = getEmptySpacesPositionsFromAString(columnString);
@@ -332,16 +330,14 @@ class GameMatrix {
                 insertColumnWordFromPosition(matrix, shouldLetterStartIndex, columnIndex, columnWordWithoutSpaces);
             }
         }
-        return matrix;
     }
 
     /**
-     * Method that compacts the matrix if one column is empty
+     * Method that compacts the matrix if a column is empty
      *
      * @param matrix the matrix given
-     * @return the matrix compacted
      */
-    private char[][] translation(char[][] matrix) {
+    private void translation(char[][] matrix) {
         List<Integer> columnsNotEmptyList = new ArrayList<>();
         for (int columnIndex = 0; columnIndex < matrix[0].length; columnIndex++) {
             String columnWord = convertAColumnDatatoWord(matrix, columnIndex);
@@ -370,7 +366,6 @@ class GameMatrix {
                 }
             }
         }
-        return matrix;
     }
 
     private boolean isEmptyColumn(char[][] matrix, int columnIndex) {
@@ -427,39 +422,7 @@ class GameMatrix {
     }
 
     public boolean hasReadableWords(char[][] matrix, List<String> dictionary) {
-
         return !readableWordsList(matrix, dictionary).isEmpty();
-       /* List<String> wordsList = new ArrayList<>(Arrays.asList(dictionary));
-        boolean result = false;
-        for (int rowIndex = 0; rowIndex < matrix.length; rowIndex++) {
-            String rowWord = convertARowDatatoWord(matrix, rowIndex);
-
-            for (int wordsIndex = 0; wordsIndex < wordsList.size(); wordsIndex++) {
-                String word = wordsList.get(wordsIndex);
-                result = rowWord.contains(word) || rowWord.contains(reverseString(word));
-                //System.out.println("Check rowWord : " + rowWord + " contains : " + word + " result : " + result);
-                if (result) {
-                    wordsIndex = wordsList.size() - 1;
-                    rowIndex = matrix.length - 1;
-                }
-            }
-        }
-        if (!result) {
-            for (int columnIndex = 0; columnIndex < matrix[0].length; columnIndex++) {
-                String columnWord = convertAColumnDatatoWord(matrix, columnIndex);
-
-                for (int wordsIndex = 0; wordsIndex < wordsList.size(); wordsIndex++) {
-                    String word = wordsList.get(wordsIndex);
-                    result = columnWord.contains(word) || columnWord.contains(reverseString(word));
-                    //System.out.println("Check columnWord : " + columnWord + " contains : " + word + " result : " + result);
-                    if (result) {
-                        wordsIndex = wordsList.size() - 1;
-                        columnIndex = matrix[0].length - 1;
-                    }
-                }
-            }
-        }
-        return result;*/
     }
 
     private boolean isEqualsTo(char letter, char... letters) {
@@ -513,7 +476,7 @@ class GameMatrix {
      * First letter : the row index in number from 0 to 9.
      * Seccond letter : the column index in number from 0 to 9.
      * Third letter : the direction, which must one of 'N', 'S', 'E', 'O'.
-     * Four letter : the lenght of the operationWord, from 0 to 9.
+     * Four letter : the lenght of the desired word, from 0 to 9.
      *
      * @param operationWord the operationWord word we want to check
      * @return true if the operationWord word it´s correct, otherwise false.
@@ -534,7 +497,6 @@ class GameMatrix {
             int beforeZeroAsciiIndex = 47;
             int afterNineAsciiIndex = 58;
 
-
             //Check multiples conditions
             result = isCorrect(
                     rowIndexLetter > beforeZeroAsciiIndex && rowIndexLetter < afterNineAsciiIndex,
@@ -544,10 +506,10 @@ class GameMatrix {
 
 
             if (result) {
-                String rowIndexString = String.valueOf(operationWord.charAt(0));
-                String columnIndexString = String.valueOf(operationWord.charAt(1));
-                String directionString = String.valueOf(operationWord.charAt(2));
-                String lenghtString = String.valueOf(operationWord.charAt(3));
+                String rowIndexString = String.valueOf(rowIndexLetter);
+                String columnIndexString = String.valueOf(columnIndexLetter);
+                String directionString = String.valueOf(directionLetter);
+                String lenghtString = String.valueOf(lenghtLetter);
                 Object[] operationWordDataArray = getOperationData(rowIndexString, columnIndexString, directionString, lenghtString);
 
                 int rowIndex = (int) operationWordDataArray[0];
@@ -648,12 +610,8 @@ class GameMatrix {
                 finalIndex = startColumnIndex + 1;
                 break;
         }
-        //System.out.println("startIndex " + startIndex);
-        //System.out.println("finalIndex " + finalIndex);
         String selectedWord = dataWord.substring(startIndex, finalIndex);
-
         System.out.println("selected word : " + selectedWord);
-
         if (type == TYPE.O || type == TYPE.N) selectedWord = reverseString(selectedWord);
 
         return new Object[]{startIndex, selectedWord};
@@ -706,12 +664,11 @@ class GameMatrix {
         }
     }
 
-    private char[][] insertColumnWordFromPosition(char[][] matrix, int startRowIndex, int columnIndex, String word) {
+    private void insertColumnWordFromPosition(char[][] matrix, int startRowIndex, int columnIndex, String word) {
         for (int letterIndex = 0; letterIndex < word.length(); letterIndex++) {
             matrix[startRowIndex][columnIndex] = word.charAt(letterIndex);
             startRowIndex++;
         }
-        return matrix;
     }
 
 
@@ -786,8 +743,14 @@ class GameMatrix {
     public boolean isEmptyMatrix(char[][] matrix) {
         boolean result = true;
         for (int rowIndex = 0; rowIndex < matrix.length; rowIndex++) {
-            for (int columnIndex = 0; columnIndex < matrix[rowIndex].length; columnIndex++) {
-                if (matrix[rowIndex][columnIndex] != ' ') result = false;
+            int columnIndex = 0;
+            int maxColumnIndex = matrix[rowIndex].length;
+            while (columnIndex < maxColumnIndex) {
+                if (matrix[rowIndex][columnIndex] != ' ') {
+                    result = false;
+                    columnIndex = maxColumnIndex - 1;
+                }
+                columnIndex++;
             }
         }
         return result;
@@ -807,7 +770,7 @@ class GameMatrix {
     /**
      * Method that prints the game matrix with coordinates
      *
-     * @param record
+     * @param record the user current record
      */
     public void printMatrix(char[][] matrix, int record) {
 
@@ -932,6 +895,11 @@ class RandomUtils {
 }
 
 class FileUtils {
+
+    private FileUtils() {
+
+    }
+
     public static void writeRecordInFile(File file, int record) {
         Writer wr;
         try {

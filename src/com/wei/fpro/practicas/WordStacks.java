@@ -117,6 +117,7 @@ public class WordStacks {
                         break;
                 }
             } else if (operationData.length == 4) {
+                //TODO NEED OPTIMISATION
                 int rowIndex = Integer.parseInt(operationData[0]);
                 int columnIndex = Integer.parseInt(operationData[1]);
                 GameMatrix.TYPE type = null;
@@ -162,11 +163,7 @@ public class WordStacks {
             System.out.println("¿Quieres volver a jugar? Si es el caso, introduzca si");
             String response = keyboard.nextLine();
             if (response.toLowerCase().equals("si")) {
-                randomWordsList = RandomUtils.getRandomList(originalDictionary, randomDictionary.length);
-                randomWordsList.toArray(randomDictionary);
-                System.out.println("new randomWordsArray " + Arrays.toString(randomDictionary));
-                //TODO bug fix
-                play(randomDictionary.length, randomDictionary, keyboard);
+                play(length, originalDictionary, keyboard);
             }
         } else {
             //Matrix not empty
@@ -343,7 +340,8 @@ class GameMatrix {
     }
 
     /**
-     *  Method that compacts the matrix if one column is empty
+     * Method that compacts the matrix if one column is empty
+     *
      * @param matrix the matrix given
      * @return the matrix compacted
      */
@@ -357,7 +355,7 @@ class GameMatrix {
             }
         }
 
-       // System.out.println("No emptyColums " + Arrays.toString(columnsNotEmptyList.toArray()));
+        // System.out.println("No emptyColums " + Arrays.toString(columnsNotEmptyList.toArray()));
 
         int shouldEndColumnIndex = columnsNotEmptyList.size();
 
@@ -371,10 +369,10 @@ class GameMatrix {
                 }
                 listIndex++;
             } else {
-                if(!isEmptyColumn(matrix,columnIndex)){
+                if (!isEmptyColumn(matrix, columnIndex)) {
                     int lenght = 10;
                     String tenEmptySpacesString = generateEmptySpacesString(lenght);
-                    insertColumnWordFromPosition(matrix,0,columnIndex,tenEmptySpacesString);
+                    insertColumnWordFromPosition(matrix, 0, columnIndex, tenEmptySpacesString);
                 }
             }
         }
@@ -528,14 +526,16 @@ class GameMatrix {
             char columnIndexLetter = word.charAt(1);
             char lenghtLetter = word.charAt(3);
 
-            //PS : 0 in ascci is 48
-            //PS : 9 in ascci is 57
+            //PS : 0 in ASCII corresponds to 48
+            //PS : 9 in ASCII corresponds to 57
+            int beforeZeroAsciiIndex = 47;
+            int afterNineAsciiIndex = 58;
 
             //Check multiples conditions
-            result = isCorrect(rowIndexLetter > 47 && rowIndexLetter < 58,
-                    columnIndexLetter > 47 && columnIndexLetter < 58,
+            result = isCorrect(rowIndexLetter > beforeZeroAsciiIndex && rowIndexLetter < afterNineAsciiIndex,
+                    columnIndexLetter > beforeZeroAsciiIndex && columnIndexLetter < afterNineAsciiIndex,
                     isEqualsTo(word.charAt(2), 'N', 'S', 'O', 'E'),
-                    lenghtLetter > 47 && lenghtLetter < 58);
+                    lenghtLetter > beforeZeroAsciiIndex && lenghtLetter < afterNineAsciiIndex);
         }
         return result;
     }
@@ -718,7 +718,7 @@ class GameMatrix {
     }
 
     /**
-     * Method that converts a row of @code this.matrix to String
+     * Method that converts a row of the matrix to String
      *
      * @param rowIndex the row index given
      * @return the entire row in String
@@ -906,9 +906,9 @@ class FileUtils {
                     char firstLetter = nextString.charAt(0);
                     //PS : 0 in ASCII corresponds to 48
                     //PS : 9 in ASCII corresponds to 57
-                    int ceroAsciiIndex = 47;
-                    int nineAsciiIndex = 57;
-                    if (firstLetter > ceroAsciiIndex && firstLetter < nineAsciiIndex) {
+                    int beforeZeroAsciiIndex = 47;
+                    int afterNineAsciiIndex = 58;
+                    if (firstLetter > beforeZeroAsciiIndex && firstLetter < afterNineAsciiIndex) {
                         record = Integer.parseInt(nextString);
                         //System.out.println("record saved : " + record);
                     }

@@ -276,7 +276,7 @@ class GameMatrix {
                                 .collect(Collectors.toList());
                         int randomRowPosition = emptyPositionsList.get(0);
                         matrix[randomRowPosition][columnIndex] = word.charAt(wordsCharsCount);
-                       //System.out.println("Inserted : " + word.charAt(wordsCharsCount) + " at (" + randomRowPosition + "," + columnIndex + ")");
+                        //System.out.println("Inserted : " + word.charAt(wordsCharsCount) + " at (" + randomRowPosition + "," + columnIndex + ")");
                         wordsCharsCount++;
                     }
                     columnIndex++;
@@ -342,28 +342,52 @@ class GameMatrix {
         return matrix;
     }
 
-    //TODO
-    private void translation(char[][] matrix) {
-        List<Integer> columnEmptysList = new ArrayList<>();
+    /**
+     *  Method that compacts the matrix if one column is empty
+     * @param matrix the matrix given
+     * @return the matrix compacted
+     */
+    private char[][] translation(char[][] matrix) {
+        List<Integer> columnsNotEmptyList = new ArrayList<>();
         for (int columnIndex = 0; columnIndex < matrix[0].length; columnIndex++) {
             String columnWord = convertAColumnDatatoWord(matrix, columnIndex);
             int spaces = getNumberOfSpacesOfAString(columnWord);
-            if (spaces == matrix[0].length) {
-                columnEmptysList.add(columnIndex);
+            if (spaces != matrix[0].length) {
+                columnsNotEmptyList.add(columnIndex);
             }
         }
-        if (!columnEmptysList.isEmpty()) {
-            System.out.println(Arrays.toString(columnEmptysList.toArray()));
-            int shouldEndColumnIndex = matrix[0].length - columnEmptysList.size();
 
-            for (int columnIndex = 0; columnIndex <= shouldEndColumnIndex; columnIndex++) {
-                if (columnEmptysList.contains(columnIndex)) {
+       // System.out.println("No emptyColums " + Arrays.toString(columnsNotEmptyList.toArray()));
 
+        int shouldEndColumnIndex = columnsNotEmptyList.size();
+
+        int listIndex = 0;
+        for (int columnIndex = 0; columnIndex < matrix[0].length; columnIndex++) {
+            if (columnIndex < shouldEndColumnIndex) {
+                int columnWordNotEmptyIndex = columnsNotEmptyList.get(listIndex);
+                String columnWordNotEmpty = convertAColumnDatatoWord(matrix, columnWordNotEmptyIndex);
+                if (columnIndex != columnsNotEmptyList.get(listIndex)) {
+                    insertColumnWordFromPosition(matrix, 0, columnIndex, columnWordNotEmpty);
+                }
+                listIndex++;
+            } else {
+                if(!isEmptyColumn(matrix,columnIndex)){
+                    int lenght = 10;
+                    String tenEmptySpacesString = generateEmptySpacesString(lenght);
+                    insertColumnWordFromPosition(matrix,0,columnIndex,tenEmptySpacesString);
                 }
             }
         }
+        return matrix;
     }
 
+    private boolean isEmptyColumn(char[][] matrix, int columnIndex) {
+        boolean result = false;
+        String columnWord = convertAColumnDatatoWord(matrix, columnIndex);
+        int emptySpaces = getNumberOfSpacesOfAString(columnWord);
+        if (emptySpaces == matrix[0].length) result = true;
+        return result;
+    }
 
     public boolean containsInDictionary(String[] dictionary, String word) {
         boolean result = false;
@@ -619,6 +643,7 @@ class GameMatrix {
                 break;
         }
         gravity(matrix);
+        translation(matrix);
         return matrix;
     }
 

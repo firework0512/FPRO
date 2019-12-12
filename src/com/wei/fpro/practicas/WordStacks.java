@@ -14,8 +14,9 @@ public class WordStacks {
         String response = keyboard.nextLine();
         String[] dictionary = getDictionary(response);
 
+        int lenght = 10;
         //Start to play
-        play(10, dictionary, keyboard);
+        play(lenght, dictionary, keyboard);
     }
 
     private static String[] getDictionary(String response) {
@@ -73,12 +74,20 @@ public class WordStacks {
      * @param keyboard           the {@link Scanner} object we have created
      */
     private static void play(int length, String[] originalDictionary, Scanner keyboard) {
+
         //The random words dictionary
-        String[] randomDictionary = new String[length];
-        //Get randomDictionary.lenght random words
-        List<String> randomWordsList = RandomUtils.getRandomList(originalDictionary, randomDictionary.length);
-        //Put random words to the random words array
-        randomWordsList.toArray(randomDictionary);
+        String[] randomDictionary = originalDictionary;
+        //List of random words
+        List<String> randomWordsList;
+
+        if (originalDictionary.length > length) {
+            randomWordsList = RandomUtils.getRandomList(originalDictionary, length);
+            //Put random words to the random words array
+            randomDictionary = randomWordsList.toArray(new String[0]);
+
+        } else {
+            randomWordsList = new ArrayList<>(Arrays.asList(randomDictionary));
+        }
 
         //List containing words that user hasn`t removed yet
         List<String> restWordsList = new ArrayList<>(randomWordsList);
@@ -103,10 +112,10 @@ public class WordStacks {
         while (gameMatrix.hasReadableWords(matrix, randomWordsList)) {
             gameMatrix.printMatrix(matrix, record);
             //We request user to input his operation
-            String[] operationData = gameMatrix.requestOperation(matrix, keyboard);
+            Object[] operationData = gameMatrix.requestOperation(keyboard);
 
             if (operationData.length == 1) {
-                String typeClue = operationData[0];
+                String typeClue = (String) operationData[0];
                 //TODO
                 switch (typeClue) {
                     case "LET":
@@ -117,25 +126,11 @@ public class WordStacks {
                         break;
                 }
             } else if (operationData.length == 4) {
-                //TODO NEED OPTIMISATION
-                int rowIndex = Integer.parseInt(operationData[0]);
-                int columnIndex = Integer.parseInt(operationData[1]);
-                GameMatrix.TYPE type = null;
-                switch (operationData[2]) {
-                    case "N":
-                        type = GameMatrix.TYPE.N;
-                        break;
-                    case "S":
-                        type = GameMatrix.TYPE.S;
-                        break;
-                    case "E":
-                        type = GameMatrix.TYPE.E;
-                        break;
-                    case "O":
-                        type = GameMatrix.TYPE.O;
-                        break;
-                }
-                int lenght = Integer.parseInt(operationData[3]);
+                int rowIndex = (int) operationData[0];
+                int columnIndex = (int) operationData[1];
+                GameMatrix.TYPE type = (GameMatrix.TYPE) operationData[2];
+                int lenght = (int) operationData[3];
+
                 String selectedWord = (String) gameMatrix.getOperationDataArray(matrix, rowIndex, columnIndex, type, lenght)[1];
                 //Check if we can perform an operation
                 //Check if we have this word int the original dictionary
@@ -159,6 +154,7 @@ public class WordStacks {
         }
 
         if (gameMatrix.isEmptyMatrix(matrix)) {
+            System.out.println();
             System.out.println("Has conseguido vaciar el tablero!!!");
             System.out.println("¿Quieres volver a jugar? Si es el caso, introduzca si");
             String response = keyboard.nextLine();
@@ -168,10 +164,10 @@ public class WordStacks {
         } else {
             //Matrix not empty
             //We regenerate a new matrix with given dictionary
+            System.out.println();
             System.out.println("No hemos podido encontrar palabras legibles en el tablero");
             System.out.println("Generaremos otra nueva matriz");
             String[] restWordArray = restWordsList.toArray(new String[0]);
-            //TODO bug fix
             play(restWordArray.length, restWordArray, keyboard);
         }
     }
@@ -355,8 +351,6 @@ class GameMatrix {
             }
         }
 
-        // System.out.println("No emptyColums " + Arrays.toString(columnsNotEmptyList.toArray()));
-
         int shouldEndColumnIndex = columnsNotEmptyList.size();
 
         int listIndex = 0;
@@ -389,12 +383,14 @@ class GameMatrix {
 
     public boolean containsInDictionary(String[] dictionary, String word) {
         boolean result = false;
-        for (int index = 0; index < dictionary.length; index++) {
+        int index = 0;
+        while (index < dictionary.length) {
             String dictionaryWord = dictionary[index];
             if (dictionaryWord.equals(word)) {
                 result = true;
                 index = dictionary.length - 1;
             }
+            index++;
         }
         return result;
     }
@@ -468,22 +464,26 @@ class GameMatrix {
 
     private boolean isEqualsTo(char letter, char... letters) {
         boolean result = false;
-        for (int letterIndex = 0; letterIndex < letters.length; letterIndex++) {
+        int letterIndex = 0;
+        while (letterIndex < letters.length) {
             if (letter == letters[letterIndex]) {
                 result = true;
                 letterIndex = letters.length - 1;
             }
+            letterIndex++;
         }
         return result;
     }
 
     private boolean isEqualsTo(String word, String... words) {
         boolean result = true;
-        for (int wordIndex = 0; wordIndex < word.length(); wordIndex++) {
+        int wordIndex = 0;
+        while (wordIndex < word.length()) {
             if (!words[wordIndex].equals(word)) {
                 result = false;
                 wordIndex = words.length - 1;
             }
+            wordIndex++;
         }
         return result;
     }
@@ -491,18 +491,20 @@ class GameMatrix {
     private boolean isCorrect(boolean... bools) {
         boolean result = true;
 
-        for (int boolIndex = 0; boolIndex < bools.length - 1; boolIndex++) {
+        int boolIndex = 0;
+        while (boolIndex < bools.length) {
             boolean condition = bools[boolIndex];
             if (!condition) {
                 result = false;
                 boolIndex = bools.length - 1;
             }
+            boolIndex++;
         }
         return result;
     }
 
     /**
-     * Method that checks if the operation word is correct
+     * Method that checks if the operationWord word is correct
      * <p>
      * Operations word must have this format :
      * Formed by 3 letters:
@@ -511,61 +513,115 @@ class GameMatrix {
      * First letter : the row index in number from 0 to 9.
      * Seccond letter : the column index in number from 0 to 9.
      * Third letter : the direction, which must one of 'N', 'S', 'E', 'O'.
-     * Four letter : the lenght of the operation, from 0 to 9.
+     * Four letter : the lenght of the operationWord, from 0 to 9.
      *
-     * @param word the operation word we want to check
-     * @return true if the operation word it´s correct, otherwise false.
+     * @param operationWord the operationWord word we want to check
+     * @return true if the operationWord word it´s correct, otherwise false.
      */
-    private boolean isCorrectOperationWord(String word) {
+    private boolean isCorrectOperationWord(String operationWord) {
         boolean result = false;
         //Operations must be formed by 4 letters
-        if (word.length() == 3) {
-            if (!isEqualsTo(word, "LET", "POS", "PAL")) return result;
-        } else if (word.length() == 4) {
-            char rowIndexLetter = word.charAt(0);
-            char columnIndexLetter = word.charAt(1);
-            char lenghtLetter = word.charAt(3);
+        if (operationWord.length() == 3) {
+            if (!isEqualsTo(operationWord, "LET", "POS", "PAL")) return result;
+        } else if (operationWord.length() == 4) {
+            char rowIndexLetter = operationWord.charAt(0);
+            char columnIndexLetter = operationWord.charAt(1);
+            char directionLetter = operationWord.charAt(2);
+            char lenghtLetter = operationWord.charAt(3);
 
             //PS : 0 in ASCII corresponds to 48
             //PS : 9 in ASCII corresponds to 57
             int beforeZeroAsciiIndex = 47;
             int afterNineAsciiIndex = 58;
 
+
             //Check multiples conditions
-            result = isCorrect(rowIndexLetter > beforeZeroAsciiIndex && rowIndexLetter < afterNineAsciiIndex,
+            result = isCorrect(
+                    rowIndexLetter > beforeZeroAsciiIndex && rowIndexLetter < afterNineAsciiIndex,
                     columnIndexLetter > beforeZeroAsciiIndex && columnIndexLetter < afterNineAsciiIndex,
-                    isEqualsTo(word.charAt(2), 'N', 'S', 'O', 'E'),
+                    isEqualsTo(directionLetter, 'N', 'S', 'O', 'E'),
                     lenghtLetter > beforeZeroAsciiIndex && lenghtLetter < afterNineAsciiIndex);
+
+
+            if (result) {
+                String rowIndexString = String.valueOf(operationWord.charAt(0));
+                String columnIndexString = String.valueOf(operationWord.charAt(1));
+                String directionString = String.valueOf(operationWord.charAt(2));
+                String lenghtString = String.valueOf(operationWord.charAt(3));
+                Object[] operationWordDataArray = getOperationData(rowIndexString, columnIndexString, directionString, lenghtString);
+
+                int rowIndex = (int) operationWordDataArray[0];
+                int columnIndex = (int) operationWordDataArray[1];
+                int lenght = (int) operationWordDataArray[3];
+
+                int minIndex = 0;
+                int maxIndex = 9;
+                switch (directionLetter) {
+                    case 'N':
+                        result = rowIndex - lenght + 1 >= minIndex;
+                        break;
+                    case 'S':
+                        result = rowIndex + lenght - 1 <= maxIndex;
+                        break;
+                    case 'O':
+                        result = columnIndex - lenght + 1 >= minIndex;
+                        break;
+                    case 'E':
+                        result = columnIndex + lenght - 1 <= maxIndex;
+                        break;
+                }
+            }
         }
         return result;
     }
 
 
-    public String[] requestOperation(char[][] matrix, Scanner scanner) {
-        System.out.println("Introduzca las coordenadas");
-        System.out.println("Si desea obtener una pista, introduzca LET, POS O PAL");
-        String operation = scanner.nextLine();
-
-        while (!isCorrectOperationWord(operation)) {
-            System.out.println("Introduzca las coordenadas correctas");
-            System.out.println("Si desea obtener una pista, introduzca LET, POS O PAL");
-            operation = scanner.nextLine();
+    private Object[] getOperationData(String rowIndexString, String columnIndexString, String directionString, String lenghtString) {
+        int rowIndex = Integer.parseInt(rowIndexString);
+        int columnIndex = Integer.parseInt(columnIndexString);
+        GameMatrix.TYPE type = null;
+        switch (directionString) {
+            case "N":
+                type = GameMatrix.TYPE.N;
+                break;
+            case "S":
+                type = GameMatrix.TYPE.S;
+                break;
+            case "E":
+                type = GameMatrix.TYPE.E;
+                break;
+            case "O":
+                type = GameMatrix.TYPE.O;
+                break;
         }
-
-        if (operation.length() == 4) {
-            //operation = operation.toUpperCase(Locale.ROOT);
-            String rowIndex = String.valueOf(operation.charAt(0));
-            String columnIndex = String.valueOf(operation.charAt(1));
-            String direction = String.valueOf(operation.charAt(2));
-            String lenght = String.valueOf(operation.charAt(3));
-            return new String[]{rowIndex, columnIndex, direction, lenght};
-        } else {
-            return new String[]{operation};
-        }
+        int lenght = Integer.parseInt(lenghtString);
+        return new Object[]{rowIndex, columnIndex, type, lenght};
     }
 
+    public Object[] requestOperation(Scanner scanner) {
+        System.out.println("Introduzca las coordenadas");
+        System.out.println("Si desea obtener una pista, introduzca LET, POS O PAL");
+        String operationWord = scanner.nextLine();
 
-    //TODO bug fix : indexOutOfRangeException
+        while (!isCorrectOperationWord(operationWord)) {
+            System.out.println("Introduzca las coordenadas correctas");
+            System.out.println("Si desea obtener una pista, introduzca LET, POS O PAL");
+            operationWord = scanner.nextLine();
+        }
+        Object[] operationDataArray;
+        if (operationWord.length() == 4) {
+            //operationWord = operationWord.toUpperCase(Locale.ROOT);
+            String rowIndex = String.valueOf(operationWord.charAt(0));
+            String columnIndex = String.valueOf(operationWord.charAt(1));
+            String direction = String.valueOf(operationWord.charAt(2));
+            String lenght = String.valueOf(operationWord.charAt(3));
+            operationDataArray = getOperationData(rowIndex, columnIndex, direction, lenght);
+        } else {
+            operationDataArray = new Object[]{operationWord};
+        }
+        return operationDataArray;
+    }
+
     public Object[] getOperationDataArray(char[][] matrix, int startRowIndex, int startColumnIndex, TYPE type, int lenght) {
         String dataWord = "";
         int startIndex = 0;
@@ -597,12 +653,8 @@ class GameMatrix {
         String selectedWord = dataWord.substring(startIndex, finalIndex);
 
         System.out.println("selected word : " + selectedWord);
-        switch (type) {
-            case N:
-            case O:
-                selectedWord = reverseString(selectedWord);
-                break;
-        }
+
+        if (type == TYPE.O || type == TYPE.N) selectedWord = reverseString(selectedWord);
 
         return new Object[]{startIndex, selectedWord};
     }

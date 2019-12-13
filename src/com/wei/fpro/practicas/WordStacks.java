@@ -22,7 +22,7 @@ public class WordStacks {
         //Get the last record
         int lastRecord = FileUtils.getRecordInFile(dataFile);
         //Start to play
-        play(lenght, dictionary, keyboard, lastRecord, dataFile);
+        play(lenght, dictionary, null, keyboard, lastRecord, dataFile);
     }
 
     private static String[] getDictionary(String response) {
@@ -77,11 +77,12 @@ public class WordStacks {
      *
      * @param length             the lenght of the random words we want to have
      * @param originalDictionary the original dictionary which we are going to choose @param lenght words
+     * @param hasFoundWordsList  the list of words the user has found that belongs to the original dictionary but not to the dictionary that builds the matrix
      * @param keyboard           the {@link Scanner} object we have created
      * @param record             the user last record saved
      * @param dataFile           the file which we will save the record
      */
-    private static void play(int length, String[] originalDictionary, Scanner keyboard, int record, File dataFile) {
+    private static void play(int length, String[] originalDictionary, List<String> hasFoundWordsList, Scanner keyboard, int record, File dataFile) {
 
         //The random words dictionary
         String[] randomDictionary = originalDictionary;
@@ -97,14 +98,16 @@ public class WordStacks {
             randomWordsList = new ArrayList<>(Arrays.asList(randomDictionary));
         }
 
+        if (hasFoundWordsList == null) {
+            hasFoundWordsList = new ArrayList<>();
+        }
+
         //List containing words that user hasn`t removed yet
         List<String> restWordsList = new ArrayList<>(randomWordsList);
 
-        //list of words the user has found that belongs to the original dictionary but not to the dictionary that builds the matrix
-
         //System.out.println(Arrays.toString(randomDictionary));
 
-        //Create [GameMatrix] instance
+        //Create [GameMatrix] instance object
         GameMatrix gameMatrix = new GameMatrix();
 
         //Now we start the game generating the matrix
@@ -134,12 +137,12 @@ public class WordStacks {
                             int rowIndex = positionPair.getKey();
                             int columnIndex = positionPair.getValue();
                             record -= 2;
-                            System.out.println("La primera posición legible es : (" + rowIndex + "," + columnIndex + ")");
+                            System.out.println("La primera posición de una palabra legible del tablero es : (" + rowIndex + "," + columnIndex + ")");
                             break;
                         case "PAL":
                             clueWord = (String) clue;
                             record -= clueWord.length();
-                            System.out.println("La primera palabra legible de una palabra legible del tablero es : " + clueWord);
+                            System.out.println("La primera palabra legible del tablero es : " + clueWord);
                             break;
                     }
                 } else {
@@ -156,9 +159,9 @@ public class WordStacks {
                 //Check if we can perform an operation
                 //Check if we have this word int the original dictionary
                 if (gameMatrix.containsInDictionary(originalDictionary, selectedWord) && !gameMatrix.containsInDictionary(randomDictionary, selectedWord)) {
-                    if (!restWordsList.contains(selectedWord)) {
+                    if (!hasFoundWordsList.contains(selectedWord)) {
                         record++;
-                        restWordsList.add(selectedWord);
+                        hasFoundWordsList.add(selectedWord);
                         gameMatrix.writeRecord(dataFile, record);
                     } else {
                         System.out.println("Oye, que ya lo has encontrado");
@@ -180,7 +183,7 @@ public class WordStacks {
             System.out.println("¿Quieres volver a jugar? Si es el caso, introduzca si");
             String response = keyboard.nextLine();
             if (response.toLowerCase().equals("si")) {
-                play(length, originalDictionary, keyboard, record, dataFile);
+                play(length, originalDictionary, null, keyboard, record, dataFile);
             }
         } else {
             //Matrix not empty
@@ -189,7 +192,7 @@ public class WordStacks {
             System.out.println("No hemos podido encontrar palabras legibles en el tablero");
             System.out.println("Vamos a generar otro tablero con las palabras restantes");
             String[] restWordArray = restWordsList.toArray(new String[0]);
-            play(restWordArray.length, restWordArray, keyboard, record, dataFile);
+            play(restWordArray.length, restWordArray, hasFoundWordsList, keyboard, record, dataFile);
         }
     }
 
@@ -214,7 +217,7 @@ class GameMatrix {
      * @param file the record {@link File} object we want to read into
      * @return last user record saved
      */
-    public  int getLastRecord(File file) {
+    public int getLastRecord(File file) {
         return FileUtils.getRecordInFile(file);
     }
 
@@ -432,7 +435,7 @@ class GameMatrix {
                 } else if (rowWord.contains(reversedWord)) {
                     columnIndex = rowWord.indexOf(reversedWord) + reversedWord.length() - 1;
                     positionPair = new Pair<>(rowIndex, columnIndex);
-                    readableWordsHashMap.put(positionPair, reversedWord);
+                    readableWordsHashMap.put(positionPair, word);
                 }
                 //System.out.println("Check rowWord : " + rowWord + " contains : " + word + " result : " + result);
             }
@@ -449,9 +452,8 @@ class GameMatrix {
                     readableWordsHashMap.put(positionPair, word);
                 } else if (columnWord.contains(reversedWord)) {
                     rowIndex = columnWord.indexOf(reversedWord) + reversedWord.length() - 1;
-                    ;
                     positionPair = new Pair<>(rowIndex, columnIndex);
-                    readableWordsHashMap.put(positionPair, reversedWord);
+                    readableWordsHashMap.put(positionPair, word);
                 }
             }
         }

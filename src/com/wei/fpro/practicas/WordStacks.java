@@ -1,5 +1,7 @@
 package com.wei.fpro.practicas;
 
+import javafx.util.Pair;
+
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -102,7 +104,8 @@ public class WordStacks {
         GameMatrix gameMatrix = new GameMatrix();
 
         //Now we start the game generating the matrix
-        char[][] matrix = gameMatrix.startGame(10, 10, randomDictionary);
+        //char[][] matrix = gameMatrix.startGame(10, 10, randomDictionary);
+        char[][] matrix = NuevaMatriz.nuevaMatriz(10, 10, randomDictionary);
 
         //Get the last record
         int record = gameMatrix.getLastRecord(dataFile);
@@ -115,14 +118,33 @@ public class WordStacks {
 
             if (operationData.length == 1) {
                 String typeClue = (String) operationData[0];
-                //TODO
-                switch (typeClue) {
-                    case "LET":
-                        break;
-                    case "POS":
-                        break;
-                    case "PAL":
-                        break;
+                Object clue = gameMatrix.getAClue(matrix, randomWordsList, typeClue, record);
+                String clueWord;
+                System.out.println();
+                if (!clue.equals("NO")) {
+                    switch (typeClue) {
+                        case "LET":
+                            clueWord = (String) clue;
+                            record--;
+                            System.out.println("La primera letra legible de una palabra legible del tablero es : " + clueWord);
+                            break;
+                        case "POS":
+                            //noinspection unchecked
+                            Pair<Integer, Integer> positionPair = (Pair<Integer, Integer>) clue;
+                            int rowIndex = positionPair.getKey();
+                            int columnIndex = positionPair.getValue();
+                            record -= 2;
+                            System.out.println("La primera posición legible es :  (" + rowIndex + "," + columnIndex + ")");
+                            break;
+                        case "PAL":
+                            clueWord = (String) clue;
+                            record -= clueWord.length();
+                            System.out.println("La primera palabra legible de una palabra legible del tablero es : " + clueWord);
+                            break;
+                    }
+                } else {
+                    System.out.println("No tienes puntos suficientes!!!");
+                    System.out.println("Venga, que esto es muy fácil.");
                 }
             } else if (operationData.length == 4) {
                 int rowIndex = (int) operationData[0];
@@ -142,10 +164,9 @@ public class WordStacks {
                         System.out.println("Oye, que ya lo has encontrado");
                         System.out.println("No seas avaricioso");
                     }
-                    //Check if we have this word int the generated dictionary
+                    //Check if we have this word in the generated dictionary
                 } else if (gameMatrix.containsInDictionary(randomDictionary, selectedWord)) {
                     record += selectedWord.length();
-                    gameMatrix.writeRecord(dataFile, record);
                     restWordsList.remove(selectedWord);
                     matrix = gameMatrix.doOperation(matrix, rowIndex, columnIndex, type, lenght);
                 }
@@ -153,6 +174,7 @@ public class WordStacks {
         }
 
         if (gameMatrix.isEmptyMatrix(matrix)) {
+            gameMatrix.writeRecord(dataFile, record);
             System.out.println();
             System.out.println("Has conseguido vaciar el tablero!!!");
             System.out.println("¿Quieres volver a jugar? Si es el caso, introduzca si");
@@ -165,7 +187,7 @@ public class WordStacks {
             //We regenerate a new matrix with given dictionary
             System.out.println();
             System.out.println("No hemos podido encontrar palabras legibles en el tablero");
-            System.out.println("Generaremos otra nueva matriz");
+            System.out.println("Vamos a generar otro tablero con las palabras restantes");
             String[] restWordArray = restWordsList.toArray(new String[0]);
             play(restWordArray.length, restWordArray, keyboard);
         }
@@ -390,42 +412,60 @@ class GameMatrix {
         return result;
     }
 
-
-    private List<String> readableWordsList(char[][] matrix, List<String> dictionary) {
-        List<String> readableWordsList = new ArrayList<>();
-
+    /**
+     * Method that obtains all readable words in the matrix
+     *
+     * @param matrix     the matrix given
+     * @param dictionary the dictionary of the matrix
+     * @return the {@link HashMap} containing all the readable words with them position
+     */
+    private HashMap<Pair<Integer, Integer>, String> readableWordsList(char[][] matrix, List<String> dictionary) {
+        //Create a HashMap with the position of each readable word
+        HashMap<Pair<Integer, Integer>, String> readableWordsHashMap = new HashMap<>();
         for (int rowIndex = 0; rowIndex < matrix.length; rowIndex++) {
             String rowWord = convertARowDatatoWord(matrix, rowIndex);
             for (String word : dictionary) {
                 String reversedWord = reverseString(word);
+                Pair<Integer, Integer> positionPair;
+                int columnIndex;
                 if (rowWord.contains(word)) {
-                    readableWordsList.add(word);
+                    columnIndex = rowWord.indexOf(word);
+                    positionPair = new Pair<>(rowIndex, columnIndex);
+                    readableWordsHashMap.put(positionPair, word);
                 } else if (rowWord.contains(reversedWord)) {
-                    readableWordsList.add(reversedWord);
+                    columnIndex = rowWord.indexOf(reversedWord) + reversedWord.length() - 1;
+                    positionPair = new Pair<>(rowIndex, columnIndex);
+                    readableWordsHashMap.put(positionPair, reversedWord);
                 }
                 //System.out.println("Check rowWord : " + rowWord + " contains : " + word + " result : " + result);
             }
         }
         for (int columnIndex = 0; columnIndex < matrix[0].length; columnIndex++) {
             String columnWord = convertAColumnDatatoWord(matrix, columnIndex);
-
             for (String word : dictionary) {
                 String reversedWord = reverseString(word);
+                Pair<Integer, Integer> positionPair;
+                int rowIndex = 0;
                 if (columnWord.contains(word)) {
-                    readableWordsList.add(word);
+                    rowIndex = columnWord.indexOf(word);
+                    positionPair = new Pair<>(rowIndex, columnIndex);
+                    readableWordsHashMap.put(positionPair, word);
                 } else if (columnWord.contains(reversedWord)) {
-                    readableWordsList.add(reversedWord);
+                    rowIndex = columnWord.indexOf(reversedWord) + reversedWord.length() - 1;
+                    ;
+                    positionPair = new Pair<>(rowIndex, columnIndex);
+                    readableWordsHashMap.put(positionPair, reversedWord);
                 }
             }
         }
-        return readableWordsList;
+        return readableWordsHashMap;
     }
 
     public boolean hasReadableWords(char[][] matrix, List<String> dictionary) {
         return !readableWordsList(matrix, dictionary).isEmpty();
     }
 
-    private boolean isEqualsTo(char letter, char... letters) {
+    private boolean isEqualsToOne(char letter, char... letters) {
         boolean result = false;
         int letterIndex = 0;
         while (letterIndex < letters.length) {
@@ -438,12 +478,13 @@ class GameMatrix {
         return result;
     }
 
-    private boolean isEqualsTo(String word, String... words) {
-        boolean result = true;
+    private boolean isEqualsToOne(String word, String... words) {
+        boolean result = false;
         int wordIndex = 0;
-        while (wordIndex < word.length()) {
-            if (!words[wordIndex].equals(word)) {
-                result = false;
+        while (wordIndex < words.length) {
+            String correctWord = words[wordIndex];
+            if (word.equals(correctWord)) {
+                result = true;
                 wordIndex = words.length - 1;
             }
             wordIndex++;
@@ -483,9 +524,9 @@ class GameMatrix {
      */
     private boolean isCorrectOperationWord(String operationWord) {
         boolean result = false;
-        //Operations must be formed by 4 letters
+        //Operations must be formed by 3 o 4 letters
         if (operationWord.length() == 3) {
-            if (!isEqualsTo(operationWord, "LET", "POS", "PAL")) return result;
+            result = isEqualsToOne(operationWord, "LET", "POS", "PAL");
         } else if (operationWord.length() == 4) {
             char rowIndexLetter = operationWord.charAt(0);
             char columnIndexLetter = operationWord.charAt(1);
@@ -501,7 +542,7 @@ class GameMatrix {
             result = isCorrect(
                     rowIndexLetter > beforeZeroAsciiIndex && rowIndexLetter < afterNineAsciiIndex,
                     columnIndexLetter > beforeZeroAsciiIndex && columnIndexLetter < afterNineAsciiIndex,
-                    isEqualsTo(directionLetter, 'N', 'S', 'O', 'E'),
+                    isEqualsToOne(directionLetter, 'N', 'S', 'O', 'E'),
                     lenghtLetter > beforeZeroAsciiIndex && lenghtLetter < afterNineAsciiIndex);
 
 
@@ -584,6 +625,7 @@ class GameMatrix {
         return operationDataArray;
     }
 
+    //TODO NEED OPTIMISATION
     public Object[] getOperationDataArray(char[][] matrix, int startRowIndex, int startColumnIndex, TYPE type, int lenght) {
         String dataWord = "";
         int startIndex = 0;
@@ -617,24 +659,61 @@ class GameMatrix {
         return new Object[]{startIndex, selectedWord};
     }
 
-    //TODO
-    public int getAClue(String clue, int record) {
-        String firstClueWord;
+    /**
+     * Method that returns a clue based of different {@code clue} word
+     *
+     * @param matrix     the matrix which we wanna find a clue
+     * @param dictionary the dictionary provided to create the matrix
+     * @param clue       the type of clue we want
+     * @param record     the user record
+     * @return a clue that will be a {@link String} object or a {@link Pair} object
+     */
+
+    public Object getAClue(char[][] matrix, List<String> dictionary, String clue, int record) {
+        HashMap<Pair<Integer, Integer>, String> readableWordsHashMap = readableWordsList(matrix, dictionary);
+        Map.Entry<Pair<Integer, Integer>, String> firstEntry = readableWordsHashMap
+                .entrySet()
+                .stream()
+                .findFirst()
+                .get();
+
+        String firstClueWord = firstEntry.getValue();
+        String recordNotEnought = "NO";
+        Object returnObject = recordNotEnought;
+
         switch (clue) {
             case "LET":
                 if (record >= 1) {
                     //Find a clue
+                    int firstLetterIndex = 0;
+                    int secondLetterIndex = 1;
+                    firstClueWord = firstClueWord.substring(firstLetterIndex, secondLetterIndex);
+                    returnObject = firstClueWord;
                 }
                 break;
             case "POS":
                 if (record >= 2) {
-
+                    returnObject = firstEntry.getKey();
                 }
                 break;
             case "PAL":
+                boolean hasEnoughtRecordPoints = readableWordsHashMap
+                        .entrySet()
+                        .stream()
+                        .anyMatch(entry -> entry.getValue().length() <= record);
+                if (hasEnoughtRecordPoints) {
+                    firstEntry = readableWordsHashMap
+                            .entrySet()
+                            .stream()
+                            .filter(entry -> entry.getValue().length() <= record)
+                            .findFirst()
+                            .get();
+                    firstClueWord = firstEntry.getValue();
+                    returnObject = firstClueWord;
+                }
                 break;
         }
-        return record;
+        return returnObject;
     }
 
     public char[][] doOperation(char[][] matrix, int startRowIndex, int startColumnIndex, TYPE type, int lenght) {
@@ -690,7 +769,6 @@ class GameMatrix {
         return result;
     }
 
-
     private List<Integer> getEmptySpacesPositionsFromAString(String word) {
         List<Integer> emptySpacesPositionList = new ArrayList<>();
         int emptySpaceIndex = word.indexOf(" ");
@@ -705,7 +783,7 @@ class GameMatrix {
         return emptySpacesPositionList;
     }
 
-    public int getNumberOfSpacesOfAString(String data) {
+    private int getNumberOfSpacesOfAString(String data) {
         int whiteSpacesCount = 0;
         for (char lettre :
                 data.toCharArray()) {

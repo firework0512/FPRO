@@ -104,8 +104,7 @@ public class WordStacks {
         GameMatrix gameMatrix = new GameMatrix();
 
         //Now we start the game generating the matrix
-        //char[][] matrix = gameMatrix.startGame(10, 10, randomDictionary);
-        char[][] matrix = NuevaMatriz.nuevaMatriz(10, 10, randomDictionary);
+        char[][] matrix = gameMatrix.startGame(10, 10, randomDictionary);
 
         //Get the last record
         int record = gameMatrix.getLastRecord(dataFile);
@@ -134,7 +133,7 @@ public class WordStacks {
                             int rowIndex = positionPair.getKey();
                             int columnIndex = positionPair.getValue();
                             record -= 2;
-                            System.out.println("La primera posición legible es :  (" + rowIndex + "," + columnIndex + ")");
+                            System.out.println("La primera posición legible es : (" + rowIndex + "," + columnIndex + ")");
                             break;
                         case "PAL":
                             clueWord = (String) clue;

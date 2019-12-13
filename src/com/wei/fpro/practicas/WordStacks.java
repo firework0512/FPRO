@@ -15,9 +15,14 @@ public class WordStacks {
         Scanner keyboard = new Scanner(System.in);
         String response = keyboard.nextLine();
         String[] dictionary = getDictionary(response);
+        //The max number of words
         int lenght = 10;
+        //The file which we save locally the user record
+        final File dataFile = new File("data.txt");
+        //Get the last record
+        int lastRecord = FileUtils.getRecordInFile(dataFile);
         //Start to play
-        play(lenght, dictionary, keyboard);
+        play(lenght, dictionary, keyboard, lastRecord, dataFile);
     }
 
     private static String[] getDictionary(String response) {
@@ -73,8 +78,10 @@ public class WordStacks {
      * @param length             the lenght of the random words we want to have
      * @param originalDictionary the original dictionary which we are going to choose @param lenght words
      * @param keyboard           the {@link Scanner} object we have created
+     * @param record             the user last record saved
+     * @param dataFile           the file which we will save the record
      */
-    private static void play(int length, String[] originalDictionary, Scanner keyboard) {
+    private static void play(int length, String[] originalDictionary, Scanner keyboard, int record, File dataFile) {
 
         //The random words dictionary
         String[] randomDictionary = originalDictionary;
@@ -95,19 +102,13 @@ public class WordStacks {
 
         //list of words the user has found that belongs to the original dictionary but not to the dictionary that builds the matrix
 
-        System.out.println(Arrays.toString(randomDictionary));
-
-        //The file which we save locally the user record
-        final File dataFile = new File("data.txt");
+        //System.out.println(Arrays.toString(randomDictionary));
 
         //Create [GameMatrix] instance
         GameMatrix gameMatrix = new GameMatrix();
 
         //Now we start the game generating the matrix
         char[][] matrix = gameMatrix.startGame(10, 10, randomDictionary);
-
-        //Get the last record
-        int record = gameMatrix.getLastRecord(dataFile);
 
         //Check if the matrix has readable words
         while (gameMatrix.hasReadableWords(matrix, randomWordsList)) {
@@ -179,7 +180,7 @@ public class WordStacks {
             System.out.println("¿Quieres volver a jugar? Si es el caso, introduzca si");
             String response = keyboard.nextLine();
             if (response.toLowerCase().equals("si")) {
-                play(length, originalDictionary, keyboard);
+                play(length, originalDictionary, keyboard, record, dataFile);
             }
         } else {
             //Matrix not empty
@@ -188,7 +189,7 @@ public class WordStacks {
             System.out.println("No hemos podido encontrar palabras legibles en el tablero");
             System.out.println("Vamos a generar otro tablero con las palabras restantes");
             String[] restWordArray = restWordsList.toArray(new String[0]);
-            play(restWordArray.length, restWordArray, keyboard);
+            play(restWordArray.length, restWordArray, keyboard, record, dataFile);
         }
     }
 
@@ -213,7 +214,7 @@ class GameMatrix {
      * @param file the record {@link File} object we want to read into
      * @return last user record saved
      */
-    public int getLastRecord(File file) {
+    public  int getLastRecord(File file) {
         return FileUtils.getRecordInFile(file);
     }
 
@@ -342,11 +343,8 @@ class GameMatrix {
             String columnString = convertAColumnDatatoWord(matrix, columnIndex);
             List<Integer> emptySpacesPositionsList = getEmptySpacesPositionsFromAString(columnString);
             if (!emptySpacesPositionsList.isEmpty()) {
-                //System.out.println("Gravity start, columnWord : " + columnString);
                 String columnWordWithoutSpaces = columnString.replace(" ", "");
-                //System.out.println("Gravity start, columnWord without spaces : " + columnStringWithEmptySpacesRemoved);
                 int shouldLetterStartIndex = (matrix[0].length - columnWordWithoutSpaces.length());
-                //System.out.println("Gravity start, should start position : " + shouldLetterStartPosition);
                 insertColumnWordFromPosition(matrix, 0, columnIndex, generateEmptySpacesString(shouldLetterStartIndex));
                 insertColumnWordFromPosition(matrix, shouldLetterStartIndex, columnIndex, columnWordWithoutSpaces);
             }
@@ -877,8 +875,6 @@ class GameMatrix {
         int columCount = 0;
         char[][] coordinatedMatrix = new char[matrix.length + 2][matrix[0].length + 2];
 
-        //System.out.println("Rows : " + coordinatedMatrix.length + " Colums : " + coordinatedMatrix[0].length);
-
         for (int rowIndex = 1; rowIndex <= matrix.length; rowIndex++) {
             char numberInAscci = (char) (rowCount + '0');
             char columnCountInAscci = (char) (columCount + '0');
@@ -940,7 +936,8 @@ class RandomUtils {
 
         int index = 0;
         while (index < lenght) {
-            String palabra = originalDictionary[generateRandomNumber(0, originalDictionary.length - 1)];
+            int randomPosition = generateRandomNumber(0, originalDictionary.length - 1);
+            String palabra = originalDictionary[randomPosition];
             if (!randomDictionary.contains(palabra)) {
                 randomDictionary.add(palabra);
                 index++;
@@ -1007,7 +1004,6 @@ class FileUtils {
                     int afterNineAsciiIndex = 58;
                     if (firstLetter > beforeZeroAsciiIndex && firstLetter < afterNineAsciiIndex) {
                         record = Integer.parseInt(nextString);
-                        //System.out.println("record saved : " + record);
                     }
                 }
 

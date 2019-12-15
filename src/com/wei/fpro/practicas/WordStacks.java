@@ -133,8 +133,8 @@ public class WordStacks {
                         case "POS":
                             //noinspection unchecked
                             Position positionPair = (Position) clue;
-                            int rowIndex = positionPair.rowIndex;
-                            int columnIndex = positionPair.columIndex;
+                            int rowIndex = positionPair.getRowIndex();
+                            int columnIndex = positionPair.getColumIndex();
                             record -= 2;
                             System.out.println("La primera posición de una palabra legible del tablero es : (" + rowIndex + "," + columnIndex + ")");
                             break;
@@ -1020,8 +1020,8 @@ class FileUtils {
 //DATA CLASS
 
 class Position {
-    int rowIndex;
-    int columIndex;
+    private int rowIndex;
+    private int columIndex;
 
     public Position(int rowIndex, int columIndex) {
         this.rowIndex = rowIndex;

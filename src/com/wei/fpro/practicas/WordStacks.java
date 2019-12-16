@@ -211,7 +211,7 @@ class GameMatrix {
 
 
     /**
-     * Method that resets the last user record
+     * Method that resets the saved user record
      *
      * @param file the {@link File} we have stored the user record
      * @return true if the file has been deleted, otherwise false
@@ -359,36 +359,57 @@ class GameMatrix {
      * @param matrix the matrix given
      */
     private void translation(char[][] matrix) {
+        int matrixColumns = matrix[0].length;
+        //List of columns not emptys
         List<Integer> columnsNotEmptyList = new ArrayList<>();
-        for (int columnIndex = 0; columnIndex < matrix[0].length; columnIndex++) {
-            String columnWord = convertAColumnDatatoWord(matrix, columnIndex);
-            int spaces = getNumberOfSpacesOfAString(columnWord);
-            if (spaces != matrix[0].length) {
+        //Iterate all columns
+        for (int columnIndex = 0; columnIndex < matrixColumns; columnIndex++) {
+            //Check if the column is not empty
+            if (!isEmptyColumn(matrix, columnIndex)) {
+                //Add to the list
                 columnsNotEmptyList.add(columnIndex);
             }
         }
 
+        //Get the size of the list
         int shouldEndColumnIndex = columnsNotEmptyList.size();
 
+        //The temporal list count
         int listIndex = 0;
-        for (int columnIndex = 0; columnIndex < matrix[0].length; columnIndex++) {
+
+        //Iterate from 0 to number of columns of the matrix
+        for (int columnIndex = 0; columnIndex < matrixColumns; columnIndex++) {
+            //Check if the columnIndex is less than the size of the list
             if (columnIndex < shouldEndColumnIndex) {
+                //Get the column not empty index
                 int columnWordNotEmptyIndex = columnsNotEmptyList.get(listIndex);
-                String columnWordNotEmpty = convertAColumnDatatoWord(matrix, columnWordNotEmptyIndex);
-                if (columnIndex != columnsNotEmptyList.get(listIndex)) {
+                //Check if the column index is not equals to the column not empty index
+                if (columnIndex != columnWordNotEmptyIndex) {
+                    //Convert the column not empty to a String
+                    String columnWordNotEmpty = convertAColumnDatatoWord(matrix, columnWordNotEmptyIndex);
+                    //Insert the column not empty word to the iterate columnIndex
                     insertColumnWordFromPosition(matrix, 0, columnIndex, columnWordNotEmpty);
                 }
+                //Update the list index
                 listIndex++;
             } else {
+                //Check if the comlumn is not empty
                 if (!isEmptyColumn(matrix, columnIndex)) {
-                    int lenght = 10;
-                    String tenEmptySpacesString = generateEmptySpacesString(lenght);
+                    //String with the total number of columns of the matrix empty spaces
+                    String tenEmptySpacesString = generateEmptySpacesString(matrixColumns);
+                    //Insert the empty spaces word to the iterate columnIndex
                     insertColumnWordFromPosition(matrix, 0, columnIndex, tenEmptySpacesString);
                 }
             }
         }
     }
 
+    /**
+     * Check if the column is empty
+     * @param matrix the matrix given
+     * @param columnIndex the column index which we wanna check
+     * @return true if the colum is empty, otherwise false
+     */
     private boolean isEmptyColumn(char[][] matrix, int columnIndex) {
         boolean result = false;
         String columnWord = convertAColumnDatatoWord(matrix, columnIndex);
@@ -397,6 +418,13 @@ class GameMatrix {
         return result;
     }
 
+    /**
+     * Method that checks if the {@code dictionary} contains a word
+     *
+     * @param dictionary the String array which we wanna check
+     * @param word the word
+     * @return true if the String array contains the word, otherwise false
+     */
     public boolean containsInDictionary(String[] dictionary, String word) {
         boolean result = false;
         int index = 0;
@@ -514,7 +542,7 @@ class GameMatrix {
      * Formed by 4 letters :
      * First letter : the row index in number from 0 to 9.
      * Seccond letter : the column index in number from 0 to 9.
-     * Third letter : the direction, which must one of 'N', 'S', 'E', 'O'.
+     * Third letter : the direction, which must be one of 'N', 'S', 'E', 'O'.
      * Four letter : the lenght of the desired word, from 0 to 9.
      *
      * @param operationWord the operationWord word we want to check
@@ -746,16 +774,6 @@ class GameMatrix {
             matrix[startRowIndex][columnIndex] = word.charAt(letterIndex);
             startRowIndex++;
         }
-    }
-
-
-    private boolean isPossibleInsertLetterToRow(char[][] matrix, int rowIndex, int spacesNeeded) {
-        boolean result = false;
-        String rowWord = convertARowDatatoWord(matrix, rowIndex);
-        if (getNumberOfSpacesOfAString(rowWord) >= spacesNeeded) {
-            result = true;
-        }
-        return result;
     }
 
     private boolean isPossibleInsertWordToColumn(char[][] matrix, int columnIndex, int spacesNeeded) {

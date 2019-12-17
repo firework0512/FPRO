@@ -116,13 +116,20 @@ public class WordStacks {
         while (gameMatrix.hasReadableWords(matrix, randomWordsList)) {
             gameMatrix.printMatrix(matrix, record);
             //We request user to input his operation
-            Object[] operationData = gameMatrix.requestOperation(keyboard);
+            Operation userOperation = gameMatrix.requestOperation(keyboard);
+            //User inputted operation String
 
-            if (operationData.length == 1) {
-                String typeClue = (String) operationData[0];
+            String userOperationString = userOperation.getOperationWord();
+            //Check the operation data size, if it´s 1 then we know that the user has input one of the clues
+            if (userOperationString.length() == 3) {
+                //Get the clue type, it must be one of "LET", "POS", "PAL"
+                String typeClue = userOperationString;
+                //Get the clue object, it must be a String or a Position object
                 Object clue = gameMatrix.getAClue(matrix, randomWordsList, typeClue, record);
+                //Initialize the clue String
                 String clueWord;
                 System.out.println();
+                //Check if the user has enough record points by comparing the clue object to "NO"
                 if (!clue.equals("NO")) {
                     switch (typeClue) {
                         case "LET":
@@ -148,17 +155,18 @@ public class WordStacks {
                     System.out.println("No tienes puntos suficientes!!!");
                     System.out.println("Venga, que esto es muy fácil.");
                 }
-            } else if (operationData.length == 4) {
-                int rowIndex = (int) operationData[0];
-                int columnIndex = (int) operationData[1];
-                GameMatrix.TYPE type = (GameMatrix.TYPE) operationData[2];
-                int lenght = (int) operationData[3];
+            } else if (userOperationString.length() == 4) {
+                int rowIndex = userOperation.getRowIndex();
+                int columnIndex = userOperation.getColumnIndex();
+                GameMatrix.TYPE type = userOperation.getDirection();
+                int lenght = userOperation.getLenght();
 
                 String selectedWord = (String) gameMatrix.getOperationDataArray(matrix, rowIndex, columnIndex, type, lenght)[1];
                 //Check if we can perform an operation
                 //Check if we have this word int the original dictionary
                 if (gameMatrix.containsInDictionary(originalDictionary, selectedWord) && !gameMatrix.containsInDictionary(randomDictionary, selectedWord)) {
                     if (!hasFoundWordsList.contains(selectedWord)) {
+                        System.out.println(selectedWord + " está en el diccionario principal pero no en el diccionario que generó la matriz");
                         record++;
                         hasFoundWordsList.add(selectedWord);
                         gameMatrix.writeRecord(dataFile, record);
@@ -168,6 +176,7 @@ public class WordStacks {
                     }
                     //Check if we have this word in the generated dictionary
                 } else if (gameMatrix.containsInDictionary(randomDictionary, selectedWord)) {
+                    System.out.println(selectedWord + " está en el diccionario generó la matriz");
                     record += selectedWord.length();
                     restWordsList.remove(selectedWord);
                     matrix = gameMatrix.doOperation(matrix, rowIndex, columnIndex, type, lenght);
@@ -305,17 +314,17 @@ class GameMatrix {
 
         } else if (type == TYPE.COLUMN) {
             //System.out.println("Insert column words : " + word);
-            //int count = 0;
             boolean isPossibleToInsert = false;
             int columnIndex = 0;
-            for (int index = columnIndex; index < matrix[0].length; index++) {
+            int index = columnIndex;
+            while (index < matrix[0].length) {
                 boolean possibleInsertLetterToColumn = isPossibleInsertWordToColumn(matrix, index, word.length());
                 if (possibleInsertLetterToColumn) {
-                    //count++;
                     isPossibleToInsert = true;
                     columnIndex = index;
                     index = matrix[0].length - 1;
                 }
+                index++;
             }
             if (isPossibleToInsert) {
                 int wordsCharsCount = 0;
@@ -393,7 +402,7 @@ class GameMatrix {
                 //Update the list index
                 listIndex++;
             } else {
-                //Check if the comlumn is not empty
+                //Check if the column is not empty
                 if (!isEmptyColumn(matrix, columnIndex)) {
                     //String with the total number of columns of the matrix empty spaces
                     String tenEmptySpacesString = generateEmptySpacesString(matrixColumns);
@@ -406,7 +415,8 @@ class GameMatrix {
 
     /**
      * Check if the column is empty
-     * @param matrix the matrix given
+     *
+     * @param matrix      the matrix given
      * @param columnIndex the column index which we wanna check
      * @return true if the colum is empty, otherwise false
      */
@@ -422,7 +432,7 @@ class GameMatrix {
      * Method that checks if the {@code dictionary} contains a word
      *
      * @param dictionary the String array which we wanna check
-     * @param word the word
+     * @param word       the word
      * @return true if the String array contains the word, otherwise false
      */
     public boolean containsInDictionary(String[] dictionary, String word) {
@@ -573,15 +583,11 @@ class GameMatrix {
 
 
             if (result) {
-                String rowIndexString = String.valueOf(rowIndexLetter);
-                String columnIndexString = String.valueOf(columnIndexLetter);
-                String directionString = String.valueOf(directionLetter);
-                String lenghtString = String.valueOf(lenghtLetter);
-                Object[] operationWordDataArray = getOperationData(rowIndexString, columnIndexString, directionString, lenghtString);
+                Operation userOperation = new Operation(operationWord);
 
-                int rowIndex = (int) operationWordDataArray[0];
-                int columnIndex = (int) operationWordDataArray[1];
-                int lenght = (int) operationWordDataArray[3];
+                int rowIndex = userOperation.getRowIndex();
+                int columnIndex = userOperation.getColumnIndex();
+                int lenght = userOperation.getLenght();
 
                 int minIndex = 0;
                 int maxIndex = 9;
@@ -604,30 +610,7 @@ class GameMatrix {
         return result;
     }
 
-
-    private Object[] getOperationData(String rowIndexString, String columnIndexString, String directionString, String lenghtString) {
-        int rowIndex = Integer.parseInt(rowIndexString);
-        int columnIndex = Integer.parseInt(columnIndexString);
-        GameMatrix.TYPE type = null;
-        switch (directionString) {
-            case "N":
-                type = GameMatrix.TYPE.N;
-                break;
-            case "S":
-                type = GameMatrix.TYPE.S;
-                break;
-            case "E":
-                type = GameMatrix.TYPE.E;
-                break;
-            case "O":
-                type = GameMatrix.TYPE.O;
-                break;
-        }
-        int lenght = Integer.parseInt(lenghtString);
-        return new Object[]{rowIndex, columnIndex, type, lenght};
-    }
-
-    public Object[] requestOperation(Scanner scanner) {
+    public Operation requestOperation(Scanner scanner) {
         System.out.println("Introduzca las coordenadas");
         System.out.println("Si desea obtener una pista, introduzca LET, POS O PAL");
         String operationWord = scanner.nextLine();
@@ -637,18 +620,8 @@ class GameMatrix {
             System.out.println("Si desea obtener una pista, introduzca LET, POS O PAL");
             operationWord = scanner.nextLine();
         }
-        Object[] operationDataArray;
-        if (operationWord.length() == 4) {
-            //operationWord = operationWord.toUpperCase(Locale.ROOT);
-            String rowIndex = String.valueOf(operationWord.charAt(0));
-            String columnIndex = String.valueOf(operationWord.charAt(1));
-            String direction = String.valueOf(operationWord.charAt(2));
-            String lenght = String.valueOf(operationWord.charAt(3));
-            operationDataArray = getOperationData(rowIndex, columnIndex, direction, lenght);
-        } else {
-            operationDataArray = new Object[]{operationWord};
-        }
-        return operationDataArray;
+
+        return new Operation(operationWord);
     }
 
     //TODO NEED OPTIMISATION
@@ -704,8 +677,8 @@ class GameMatrix {
                 .get();
 
         String firstClueWord = firstEntry.getValue();
-        String recordNotEnought = "NO";
-        Object returnObject = recordNotEnought;
+        String recordNotEnough = "NO";
+        Object returnObject = recordNotEnough;
 
         switch (clue) {
             case "LET":
@@ -1061,5 +1034,75 @@ class Position {
     public void setColumIndex(int columIndex) {
         this.columIndex = columIndex;
     }
+}
 
+class Operation {
+    private int rowIndex, columnIndex, lenght;
+    private GameMatrix.TYPE direction;
+    private String operationWord;
+
+    public Operation(String operationWord) {
+        this.operationWord = operationWord;
+        if (operationWord.length() == 4) {
+            this.rowIndex = Integer.parseInt(String.valueOf(operationWord.charAt(0)));
+            this.columnIndex = Integer.parseInt(String.valueOf(operationWord.charAt(1)));
+            char thirdLetter = operationWord.charAt(2);
+            switch (thirdLetter) {
+                case 'N':
+                    this.direction = GameMatrix.TYPE.N;
+                    break;
+                case 'S':
+                    this.direction = GameMatrix.TYPE.S;
+                    break;
+                case 'E':
+                    this.direction = GameMatrix.TYPE.E;
+                    break;
+                case 'O':
+                    this.direction = GameMatrix.TYPE.O;
+                    break;
+
+            }
+            this.lenght = Integer.parseInt(String.valueOf(operationWord.charAt(3)));
+        }
+    }
+
+    public int getRowIndex() {
+        return rowIndex;
+    }
+
+    public void setRowIndex(int rowIndex) {
+        this.rowIndex = rowIndex;
+    }
+
+    public int getColumnIndex() {
+        return columnIndex;
+    }
+
+    public void setColumnIndex(int columnIndex) {
+        this.columnIndex = columnIndex;
+    }
+
+    public int getLenght() {
+        return lenght;
+    }
+
+    public void setLenght(int lenght) {
+        this.lenght = lenght;
+    }
+
+    public GameMatrix.TYPE getDirection() {
+        return direction;
+    }
+
+    public void setDirection(GameMatrix.TYPE direction) {
+        this.direction = direction;
+    }
+
+    public String getOperationWord() {
+        return operationWord;
+    }
+
+    public void setOperationWord(String operationWord) {
+        this.operationWord = operationWord;
+    }
 }

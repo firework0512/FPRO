@@ -8,16 +8,20 @@ import java.util.List;
 
 class Test {
     public static void main(String[] args) {
-        int a[] = {2, 6, 7, 8};
-        StringBuffer sb = new StringBuffer();
+        System.out.println(reverseString("HOLA"));
+    }
 
-        Test t = new Test();
-        t.parse(a);
-
+    private static String reverseString(String word) {
+        String reversedString = "";
+        for (int letterIndex = word.length() - 1; letterIndex >= 0; letterIndex--) {
+            char letter = word.charAt(letterIndex);
+            reversedString += letter;
+        }
+        return reversedString;
     }
 
     void parse(int[] a) {
-        List<Pair<Integer,Integer>> dataList = new ArrayList<>();
+        List<Pair<Integer, Integer>> dataList = new ArrayList<>();
 
         StringBuilder sb = new StringBuilder();
         int max = 0;
@@ -40,7 +44,7 @@ class Test {
                 if (len == 1) {
                     sb.append(start).append(',');
                     dataList.add(new Pair<>(start, start));
-                }else if (len > 1){
+                } else if (len > 1) {
                     sb.append(start).append('-').append(start + len - 1).append(',');
                     dataList.add(new Pair<>(start, start + len - 1));
                 }
@@ -50,7 +54,7 @@ class Test {
         if (len == 1) {
             sb.append(start).append(',');
             dataList.add(new Pair<>(start, start));
-        }else if (len > 1) {
+        } else if (len > 1) {
             sb.append(start).append('-').append(start + len - 1).append(',');
             dataList.add(new Pair<>(start, start + len - 1));
         }

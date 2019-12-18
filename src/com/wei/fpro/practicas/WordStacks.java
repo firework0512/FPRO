@@ -148,7 +148,7 @@ public class WordStacks {
                         case "PAL":
                             clueWord = (String) clue;
                             record -= clueWord.length();
-                            System.out.println("La primera palabra legible del tablero es : " + clueWord);
+                            System.out.println("Una palabra legible del tablero es : " + clueWord);
                             break;
                     }
                 } else {
@@ -176,7 +176,7 @@ public class WordStacks {
                     }
                     //Check if we have this word in the generated dictionary
                 } else if (gameMatrix.containsInDictionary(randomDictionary, selectedWord)) {
-                    System.out.println(selectedWord + " está en el diccionario generó la matriz");
+                    System.out.println(selectedWord + " está en el diccionario que generó la matriz");
                     record += selectedWord.length();
                     restWordsList.remove(selectedWord);
                     matrix = gameMatrix.doOperation(matrix, rowIndex, columnIndex, type, lenght);
@@ -899,6 +899,7 @@ class GameMatrix {
     }
 
     private String generateEmptySpacesString(int lenght) {
+        char emptyChar = ' ';
         StringBuilder stringBuilder = new StringBuilder();
         for (int startIndex = 0; startIndex < lenght; startIndex++) {
             stringBuilder.append(" ");

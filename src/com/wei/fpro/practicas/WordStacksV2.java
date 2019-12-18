@@ -779,7 +779,6 @@ public class WordStacksV2 {
      */
 
     public static String getAClue(String typeClue, int record, String[] readableWordsArray) {
-        System.out.println(Arrays.toString(readableWordsArray));
         String clueWord = "NO";
         switch (typeClue) {
             case "LET":

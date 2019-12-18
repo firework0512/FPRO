@@ -301,7 +301,8 @@ public class WordStacksV2 {
         fillMatrixWithEmptySpaces(matrix);
 
         //We parse every single word of the random dictionary
-        for (String word : dictionary) {
+        for (int elementIndex = 0; elementIndex < dictionary.length; elementIndex++) {
+            String element = dictionary[elementIndex];
             randomNumber = generateRandomNumber(0, 1);
             //We insert the word in the matrix randomly
             char type = ' ';
@@ -311,7 +312,7 @@ public class WordStacksV2 {
                 type = 'C';
             }
             try {
-                insertInAMatrix(matrix, word, type, 0);
+                insertInAMatrix(matrix, element, type, 0);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -511,8 +512,6 @@ public class WordStacksV2 {
                         result = true;
                         index = dictionary.length - 1;
                     }
-                } else {
-                    index = dictionary.length - 1;
                 }
                 index++;
             }

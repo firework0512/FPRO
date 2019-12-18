@@ -1,10 +1,39 @@
+//Hay que borrar esta linea si desea ejecutarlo en un terminal.
 package com.wei.fpro.practicas;
 
 import java.io.*;
 import java.util.*;
 
-public class WordStacksV2 {
 
+/**
+ * Se han considerado los siguientes aspectos conforme a la asignatura de FPRO en la creación de este programa:
+ * No se permite el uso de métodos, clases, objectos o estructuras no vistas en clase, por ejemplo :
+ * No se permite el uso de {@link ArrayList}
+ * No se permite el uso de {@link HashMap}
+ * No se permite el uso de {@link StringBuilder}
+ * No se permite la creación de nuevas clases con métodos propios.
+ * No se permite el uso de variables de instancia, debido a lo anterior.
+ * No se permite la iteración for each.
+ * No se permite la llamada a un método recursivo dentro del "main" que realiza la función del juego. En otras palabras,
+ * la lógica del juego debe estar en el "main".
+ * <p>
+ * Como consecuencia :
+ * El código es mucho más largo y tedioso.
+ * Puede (casi seguro) que en eficiencia no sea comparable con otro realizado sin la limitación de los aspectos anteriores.
+ * (Se ha intentado optimizar a lo máximo dentro de nuestras capacidades)
+ *
+ * <p>
+ * Para otra versión de Java ver : https://github.com/firework0512/FPRO/blob/master/src/com/wei/fpro/practicas/WordStacks.java
+ *
+ * @author Weihua Weng
+ * @author Pablo Varela Vázquez
+ */
+
+public class WordStacksV2 {
+    /***
+     * Método principal del juego y de la clase.
+     * @param args argumentos
+     */
     public static void main(String[] args) {
         System.out.println("¿Desea empezar el juego en modo de pruebas?");
         System.out.println("Si es el caso pulse p o P, en otro caso pulse otra tecla.");
@@ -28,11 +57,15 @@ public class WordStacksV2 {
                 randomDictionaryArray = getRandomList(originalDictionaryArray, lenght);
             }
             //Array of Strings(words) that user hasn`t removed yet
-            String[] restWordsArray = randomDictionaryArray.clone();
+            String[] restWordsArray;
 
             //Array of Strings(words) the user has found that belongs to the original dictionary but not to the dictionary that builds the matrix
-            String[] hasFoundWordsArray = new String[originalDictionaryArray.length];
-            int hasFoundWordsArrayIndex = 0;
+            String[] hasFoundOriginalDictionaryWordsArray = new String[originalDictionaryArray.length];
+            int hasFoundOriginalDictionaryWordsArrayIndex = 0;
+
+            //Array of Strings (words) the user has found that belongs to the random dictionary
+            String[] hasFoundRandomDictionaryWordsArray = new String[lenght];
+            int hasFoundRandomDictionaryWordsArrayIndex = 0;
 
             //Now we start the game generating the matrix
             char[][] matrix = startGame(10, 10, randomDictionaryArray);
@@ -47,6 +80,9 @@ public class WordStacksV2 {
                     System.out.println();
                     System.out.println("No hemos podido encontrar palabras legibles en el tablero");
                     System.out.println("Vamos a generar otro tablero con las palabras restantes");
+                    hasFoundRandomDictionaryWordsArray = resizeAndOrderStringArray(hasFoundRandomDictionaryWordsArray);
+                    restWordsArray = getDifferenceStringArray(randomDictionaryArray, hasFoundRandomDictionaryWordsArray);
+                    System.out.println(Arrays.toString(restWordsArray));
                     matrix = startGame(10, 10, restWordsArray);
                 }
                 printMatrix(matrix, lastRecord);
@@ -90,20 +126,21 @@ public class WordStacksV2 {
                     //Check if we can perform an operation
                     //Check if we have this word int the original dictionary
                     if (containsInDictionary(originalDictionaryArray, selectedWord) && !containsInDictionary(randomDictionaryArray, selectedWord)) {
-                        if (!containsInDictionary(hasFoundWordsArray, selectedWord)) {
+                        if (!containsInDictionary(hasFoundOriginalDictionaryWordsArray, selectedWord)) {
                             System.out.println(selectedWord + " está en el diccionario principal pero no en el diccionario que generó la matriz");
                             lastRecord++;
-                            hasFoundWordsArray[hasFoundWordsArrayIndex] = selectedWord;
-                            hasFoundWordsArrayIndex++;
+                            hasFoundOriginalDictionaryWordsArray[hasFoundOriginalDictionaryWordsArrayIndex] = selectedWord;
+                            hasFoundOriginalDictionaryWordsArrayIndex++;
                         } else {
                             System.out.println("Oye, que ya lo has encontrado");
                             System.out.println("No seas avaricioso");
                         }
                         //Check if we have this word in the generated dictionary
-                    } else if (containsInDictionary(randomDictionaryArray, selectedWord)) {
+                    } else if (containsInDictionary(randomDictionaryArray, selectedWord) && !containsInDictionary(hasFoundRandomDictionaryWordsArray, selectedWord)) {
                         System.out.println(selectedWord + " está en el diccionario que generó la matriz");
                         lastRecord += selectedWord.length();
-                        restWordsArray = removeElementFromArray(restWordsArray, selectedWord);
+                        hasFoundRandomDictionaryWordsArray[hasFoundRandomDictionaryWordsArrayIndex] = selectedWord;
+                        hasFoundRandomDictionaryWordsArrayIndex++;
                         matrix = doOperation(matrix, rowIndex, columnIndex, type, selectedLenght);
                     }
                 }
@@ -121,15 +158,19 @@ public class WordStacksV2 {
         }
     }
 
-    private static String[] removeElementFromArray(String[] array, String word) {
-        for (int elementIndex = 0; elementIndex < array.length; elementIndex++) {
-            String element = array[elementIndex];
-            if (element != null && element.equals(word)) {
-                array[elementIndex] = "";
+    private static String[] getDifferenceStringArray(String[] firstArray, String[] secondArray) {
+        int maxLenght = Math.max(firstArray.length, secondArray.length);
+        String[] newArray = new String[maxLenght];
+        int newArrayIndex = 0;
+        for (int elementIndex = 0; elementIndex < firstArray.length; elementIndex++) {
+            String element = firstArray[elementIndex];
+            if (!containsInDictionary(secondArray, element)) {
+                newArray[newArrayIndex] = element;
+                newArrayIndex++;
             }
         }
-        array = resizeAndOrderStringArray(array);
-        return array;
+        newArray = resizeAndOrderStringArray(newArray);
+        return newArray;
     }
 
     private static String[] getDictionary(String response) {
@@ -504,7 +545,7 @@ public class WordStacksV2 {
     private static boolean isNotEmptyColumn(char[][] matrix, int columnIndex) {
         boolean result = false;
         String columnWord = convertColumnToString(matrix, columnIndex);
-        int emptySpaces = getNumberOfSpacesOfAString(columnWord);
+        int emptySpaces = getNumberOfSpacesOfString(columnWord);
         if (emptySpaces == matrix[0].length) result = true;
         return !result;
     }
@@ -567,18 +608,20 @@ public class WordStacksV2 {
                 }
             }
         }
+        //TODO BUGFIX ArrayIndexOutOfBoundsException
         for (int columnIndex = 0; columnIndex < matrix[0].length; columnIndex++) {
             String columnWord = convertColumnToString(matrix, columnIndex);
-            for (String word : dictionary) {
-                String reversedWord = reverseString(word);
+            for (int elementIndex = 0; elementIndex < dictionary.length; elementIndex++) {
+                String element = dictionary[elementIndex];
+                String reversedWord = reverseString(element);
                 int rowIndex = 0;
-                if (columnWord.contains(word)) {
-                    rowIndex = columnWord.indexOf(word);
-                    readableWordsArray[readableWordsArrayCount] += "(" + rowIndex + "," + columnIndex + ")" + word;
+                if (columnWord.contains(element)) {
+                    rowIndex = columnWord.indexOf(element);
+                    readableWordsArray[readableWordsArrayCount] += "(" + rowIndex + "," + columnIndex + ")" + element;
                     readableWordsArrayCount++;
                 } else if (columnWord.contains(reversedWord)) {
                     rowIndex = columnWord.indexOf(reversedWord) + reversedWord.length() - 1;
-                    readableWordsArray[readableWordsArrayCount] += "(" + rowIndex + "," + columnIndex + ")" + word;
+                    readableWordsArray[readableWordsArrayCount] += "(" + rowIndex + "," + columnIndex + ")" + element;
                     readableWordsArrayCount++;
                 }
             }
@@ -770,7 +813,7 @@ public class WordStacksV2 {
     }
 
     /**
-     * Method that returns a clue based of different {@code clue} word
+     * Method that returns a clue based of different {@code typeClue} word
      *
      * @param typeClue           the type of clue we want
      * @param record             the user record
@@ -897,7 +940,7 @@ public class WordStacksV2 {
     private static boolean isPossibleInsertWordToColumn(char[][] matrix, int columnIndex, int spacesNeeded) {
         boolean result = false;
         String columnWord = convertColumnToString(matrix, columnIndex);
-        if (getNumberOfSpacesOfAString(columnWord) >= spacesNeeded) {
+        if (getNumberOfSpacesOfString(columnWord) >= spacesNeeded) {
             result = true;
         }
         return result;
@@ -905,7 +948,7 @@ public class WordStacksV2 {
 
 
     private static int[] getEmptySpacesPositionsFromAString(String word) {
-        int emptySpaces = getNumberOfSpacesOfAString(word);
+        int emptySpaces = getNumberOfSpacesOfString(word);
         int[] emptySpacesPositionArray = new int[0];
         if (emptySpaces > 0) {
             emptySpacesPositionArray = new int[emptySpaces];
@@ -1036,10 +1079,15 @@ public class WordStacksV2 {
     }
 
     /**
-     * Method that reverses the string
+     * Método que genera una palabra inversa de {@param word}
+     * <p>
+     * Observaciones : la concatenación de Strings o la llamada del método {@link String#concat(String)} provoca la creación de nuevos objectos de Strings,
+     * * a lo que impacta de forma negativa la eficiencia del programa.
+     * * Se recomienda el uso de {@link StringBuilder} en esta situación.
      *
-     * @param word the string provided to be reversed
-     * @return word but reversed
+     * @param word la palabra al que le vamos a dar la vuelta
+     * @return {@param word} pero dado de vuelta
+     * @see StringBuilder#reverse()
      */
     @SuppressWarnings("StringConcatenationInLoop")
     private static String reverseString(String word) {
@@ -1051,6 +1099,17 @@ public class WordStacksV2 {
         return reversedString;
     }
 
+    /**
+     * Método que genera un String con tantos espacios en blaco como {@code lenght}
+     * <p>
+     * Observaciones : la concatenación de Strings o la llamada del método {@link String#concat(String)} provoca la creación de nuevos objectos de Strings,
+     * a lo que impacta de forma negativa la eficiencia del programa.
+     * Se recomienda el uso de {@link StringBuilder} en esta situación.
+     *
+     * @param lenght la longitud deseada de espacios en blanco
+     * @return el String generado
+     * @see StringBuilder
+     */
     @SuppressWarnings("StringConcatenationInLoop")
     private static String generateEmptySpacesString(int lenght) {
         char emptyChar = ' ';
@@ -1061,7 +1120,13 @@ public class WordStacksV2 {
         return emptyString;
     }
 
-    private static int getNumberOfSpacesOfAString(String data) {
+    /**
+     * Método que obtiene el número total de espacios en blanco de una String
+     *
+     * @param data el string
+     * @return el número total de espacios en blanco
+     */
+    private static int getNumberOfSpacesOfString(String data) {
         int whiteSpacesCount = 0;
         char[] charArray = data.toCharArray();
         for (int i = 0; i < charArray.length; i++) {
@@ -1073,10 +1138,10 @@ public class WordStacksV2 {
     }
 
     /**
-     * Method that converts char into int
+     * Método que convierte un número char de 0 a 9 a un número entero de tipo int
      *
-     * @param number the number given in char, must be in range of '0' to '9'
-     * @return the numeric value in int
+     * @param number el número en char, tiene que estar en el rango [0,9]
+     * @return el número en int
      */
     private static int getNumericValue(char number) {
         char zero = '0';

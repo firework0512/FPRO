@@ -8,18 +8,18 @@ import java.util.List;
 
 class Test {
     public static void main(String[] args) {
-        System.out.println(reverseString("HOLA"));
     }
 
-    private static String reverseString(String word) {
-        String reversedString = "";
-        for (int letterIndex = word.length() - 1; letterIndex >= 0; letterIndex--) {
-            char letter = word.charAt(letterIndex);
-            reversedString += letter;
+   /* private static String[] removeElementFromArray(String[] array, String word) {
+        for (int elementIndex = 0; elementIndex < array.length; elementIndex++) {
+            String element = array[elementIndex];
+            if (element != null && element.equals(word)) {
+                array[elementIndex] = "";
+            }
         }
-        return reversedString;
-    }
-
+        array = resizeAndOrderStringArray(array);
+        return array;
+    }*/
     void parse(int[] a) {
         List<Pair<Integer, Integer>> dataList = new ArrayList<>();
 

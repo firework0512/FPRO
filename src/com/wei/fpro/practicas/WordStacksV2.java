@@ -147,34 +147,49 @@ public class WordStacksV2 {
                 "JJJJJ"};
 
         final String[] consumerDictionary = {
-                "MANEJAR",
-                "ONDA",
-                "IMPORTAR",
-                "SEGUNDOS",
-                "CARRERAS",
+                "ACARADO",
+                "ACARAR",
+                "AGUDOS",
+                "ATRABANCO",
+                "AZUL",
+                "AZULEJO",
+                "BANCO",
                 "BARRER",
+                "BARRERA",
+                "BIKINI",
+                "BUFEO",
+                "CAFETERA",
+                "CARA",
+                "CARACAS",
+                "CARAMELO",
+                "CARRERAS",
+                "COMENTAR",
+                "DICIEMBRE",
+                "DOS",
+                "DUPLICADO",
+                "FAX",
+                "FEO",
                 "FREGAR",
+                "GUITARRA",
                 "HOJA",
                 "HUIR",
-                "CARAMELO",
-                "CAFETERA",
+                "IMPORTAR",
                 "LADRILLO",
-                "AZULEJO",
-                "COMENTAR",
-                "BIKINI",
-                "VACA",
-                "SENTENCIA",
-                "DUPLICADO",
-                "DICIEMBRE",
                 "LARINGE",
-                "NEGATIVO",
-                "GUITARRA",
-                "FEO",
-                "FAX",
-                "WIFI",
-                "SAL",
+                "MANEJAR",
                 "MAR",
+                "MAREA",
+                "MENTA",
+                "NEGATIVO",
+                "ONDA",
                 "PAN",
+                "PANERA",
+                "SAL",
+                "SALADO",
+                "SEGUNDOS",
+                "SENTENCIA",
+                "VACA",
+                "WIFI"
         };
         return response.toLowerCase().equals("p") ? testDictionary : consumerDictionary;
     }
@@ -975,7 +990,7 @@ public class WordStacksV2 {
     public static void printMatrix(char[][] matrix, int record) {
 
         System.out.println();
-        System.out.println("Record : " + record);
+        System.out.println("Puntos : " + record);
         System.out.println();
 
         char[][] clonedMatrix = getMatrixWithCoordinates(matrix);

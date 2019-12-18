@@ -36,19 +36,20 @@ public class WordStacksV2 {
 
             //Now we start the game generating the matrix
             char[][] matrix = startGame(10, 10, randomDictionaryArray);
+            //Array of Strings (readable words in the matrix)
+            String[] readableWordsArray = readableWordsList(matrix, randomDictionaryArray);
+
             //Check if the matrix has readable words
             while (!isEmptyMatrix(matrix)) {
-                printMatrix(matrix, lastRecord);
-                //Array of Strings (readable words in the matrix)
-                String[] readableWordsArray = readableWordsList(matrix, randomDictionaryArray);
                 if (readableWordsArray.length == 0) {
                     //Matrix not empty
                     //We regenerate a new matrix with rest words dictionary
                     System.out.println();
                     System.out.println("No hemos podido encontrar palabras legibles en el tablero");
                     System.out.println("Vamos a generar otro tablero con las palabras restantes");
-                    matrix = generateMatrix(10, 10, restWordsArray);
+                    matrix = startGame(10, 10, restWordsArray);
                 }
+                printMatrix(matrix, lastRecord);
                 //We request user to input his operation
                 String userOperationString = requestOperation(keyboard);
                 //Check the operation data size, if it´s lenght is 3 then we know that the user has inputted one of "LET", "POS", "PAL"
@@ -106,6 +107,7 @@ public class WordStacksV2 {
                         matrix = doOperation(matrix, rowIndex, columnIndex, type, selectedLenght);
                     }
                 }
+                readableWordsArray = readableWordsList(matrix, randomDictionaryArray);
             }
 
             writeRecord(dataFile, lastRecord);
@@ -319,7 +321,7 @@ public class WordStacksV2 {
 
     private static void insertInAMatrix(char[][] matrix, String word, char type, int errorCount) throws Exception {
         if (errorCount >= 2) {
-            throw new Exception("No es posible insertar más palabras en la matriz, prueba con otra matriz más grande");
+            throw new Exception("No es posible insertar más palabras en la matriz, prueba con otra matriz más grande\n + Fallo al insertar : " + word);
         }
 
         boolean needReversed = generateRandomBoolean();

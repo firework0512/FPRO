@@ -375,6 +375,7 @@ public class WordStacksV2 {
         return matrix;
     }
 
+    //TODO BUG FIX : insertar una palabra que no se pueda insertar en la matriz horizontalmente ni verticalmente.
     private static void insertInAMatrix(char[][] matrix, String word, char type, int errorCount) throws Exception {
         if (errorCount >= 2) {
             throw new Exception("No es posible insertar más palabras en la matriz, prueba con otra matriz más grande\n + Fallo al insertar : " + word);
@@ -583,11 +584,13 @@ public class WordStacksV2 {
      * @return the String array containing all the readable words with them position
      */
     private static String[] readableWordsList(char[][] matrix, String[] dictionary, String[] hasFoundDictionary) {
-        //Create a String Array containing the position of each readable word
-        String[] readableWordsArray = new String[dictionary.length];
+        //Array de Strings que va a contener las palabras legibles de la matriz
+        //Su dimensión será el doble del tamaño del diccionario.
+        int maxLenght = dictionary.length * 2;
+        String[] palabrasLegiblesArray = new String[maxLenght];
 
-        for (int elementIndex = 0; elementIndex < readableWordsArray.length; elementIndex++) {
-            readableWordsArray[elementIndex] = "";
+        for (int elementIndex = 0; elementIndex < palabrasLegiblesArray.length; elementIndex++) {
+            palabrasLegiblesArray[elementIndex] = "";
         }
 
         int readableWordsArrayCount = 0;
@@ -601,15 +604,15 @@ public class WordStacksV2 {
                 if (rowWord.contains(element) && !containsInDictionary(hasFoundDictionary, element)) {
                     columnIndex = rowWord.indexOf(element);
                     fullWord = "(" + rowIndex + "," + columnIndex + ")" + element;
-                    if (!containsInDictionary(readableWordsArray, fullWord)) {
-                        readableWordsArray[readableWordsArrayCount] += fullWord;
+                    if (!containsInDictionary(palabrasLegiblesArray, fullWord)) {
+                        palabrasLegiblesArray[readableWordsArrayCount] += fullWord;
                         readableWordsArrayCount++;
                     }
                 } else if (rowWord.contains(reversedWord) && !containsInDictionary(hasFoundDictionary, element)) {
                     columnIndex = rowWord.indexOf(reversedWord) + reversedWord.length() - 1;
                     fullWord = "(" + rowIndex + "," + columnIndex + ")" + element;
-                    if (!containsInDictionary(readableWordsArray, fullWord)) {
-                        readableWordsArray[readableWordsArrayCount] += fullWord;
+                    if (!containsInDictionary(palabrasLegiblesArray, fullWord)) {
+                        palabrasLegiblesArray[readableWordsArrayCount] += fullWord;
                         readableWordsArrayCount++;
                     }
                 }
@@ -625,23 +628,22 @@ public class WordStacksV2 {
                 if (columnWord.contains(element) && !containsInDictionary(hasFoundDictionary, element)) {
                     rowIndex = columnWord.indexOf(element);
                     fullWord = "(" + rowIndex + "," + columnIndex + ")" + element;
-                    if (!containsInDictionary(readableWordsArray, fullWord)) {
-                        readableWordsArray[readableWordsArrayCount] += fullWord;
+                    if (!containsInDictionary(palabrasLegiblesArray, fullWord)) {
+                        palabrasLegiblesArray[readableWordsArrayCount] += fullWord;
                         readableWordsArrayCount++;
                     }
-
                 } else if (columnWord.contains(reversedWord) && !containsInDictionary(hasFoundDictionary, element)) {
                     rowIndex = columnWord.indexOf(reversedWord) + reversedWord.length() - 1;
                     fullWord = "(" + rowIndex + "," + columnIndex + ")" + element;
-                    if (!containsInDictionary(readableWordsArray, fullWord)) {
-                        readableWordsArray[readableWordsArrayCount] += fullWord;
+                    if (!containsInDictionary(palabrasLegiblesArray, fullWord)) {
+                        palabrasLegiblesArray[readableWordsArrayCount] += fullWord;
                         readableWordsArrayCount++;
                     }
                 }
             }
         }
-        readableWordsArray = resizeAndOrderStringArray(readableWordsArray);
-        return readableWordsArray;
+        palabrasLegiblesArray = resizeAndOrderStringArray(palabrasLegiblesArray);
+        return palabrasLegiblesArray;
     }
 
 

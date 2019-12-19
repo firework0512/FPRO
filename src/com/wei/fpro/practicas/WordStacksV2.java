@@ -70,7 +70,7 @@ public class WordStacksV2 {
             //Now we start the game generating the matrix
             char[][] matrix = startGame(10, 10, randomDictionaryArray);
             //Array of Strings (readable words in the matrix)
-            String[] readableWordsArray = readableWordsList(matrix, randomDictionaryArray);
+            String[] readableWordsArray = readableWordsList(matrix, randomDictionaryArray, hasFoundRandomDictionaryWordsArray);
 
             //Check if the matrix has readable words
             while (!isEmptyMatrix(matrix)) {
@@ -80,7 +80,6 @@ public class WordStacksV2 {
                     System.out.println();
                     System.out.println("No hemos podido encontrar palabras legibles en el tablero");
                     System.out.println("Vamos a generar otro tablero con las palabras restantes");
-                    hasFoundRandomDictionaryWordsArray = resizeAndOrderStringArray(hasFoundRandomDictionaryWordsArray);
                     restWordsArray = getDifferenceStringArray(randomDictionaryArray, hasFoundRandomDictionaryWordsArray);
                     System.out.println(Arrays.toString(restWordsArray));
                     matrix = startGame(10, 10, restWordsArray);
@@ -144,7 +143,7 @@ public class WordStacksV2 {
                         matrix = doOperation(matrix, rowIndex, columnIndex, type, selectedLenght);
                     }
                 }
-                readableWordsArray = readableWordsList(matrix, randomDictionaryArray);
+                readableWordsArray = readableWordsList(matrix, randomDictionaryArray, hasFoundRandomDictionaryWordsArray);
             }
 
             writeRecord(dataFile, lastRecord);
@@ -578,11 +577,12 @@ public class WordStacksV2 {
     /**
      * Method that obtains all readable words in the matrix
      *
-     * @param matrix     the matrix given
-     * @param dictionary the dictionary of the matrix
+     * @param matrix             the matrix given
+     * @param dictionary         the dictionary of the matrix
+     * @param hasFoundDictionary the array of words the user has found
      * @return the String array containing all the readable words with them position
      */
-    private static String[] readableWordsList(char[][] matrix, String[] dictionary) {
+    private static String[] readableWordsList(char[][] matrix, String[] dictionary, String[] hasFoundDictionary) {
         //Create a String Array containing the position of each readable word
         String[] readableWordsArray = new String[dictionary.length];
 
@@ -596,33 +596,47 @@ public class WordStacksV2 {
             for (int elementIndex = 0; elementIndex < dictionary.length; elementIndex++) {
                 String element = dictionary[elementIndex];
                 String reversedWord = reverseString(element);
+                String fullWord;
                 int columnIndex;
-                if (rowWord.contains(element)) {
+                if (rowWord.contains(element) && !containsInDictionary(hasFoundDictionary, element)) {
                     columnIndex = rowWord.indexOf(element);
-                    readableWordsArray[readableWordsArrayCount] += "(" + rowIndex + "," + columnIndex + ")" + element;
-                    readableWordsArrayCount++;
-                } else if (rowWord.contains(reversedWord)) {
+                    fullWord = "(" + rowIndex + "," + columnIndex + ")" + element;
+                    if (!containsInDictionary(readableWordsArray, fullWord)) {
+                        readableWordsArray[readableWordsArrayCount] += fullWord;
+                        readableWordsArrayCount++;
+                    }
+                } else if (rowWord.contains(reversedWord) && !containsInDictionary(hasFoundDictionary, element)) {
                     columnIndex = rowWord.indexOf(reversedWord) + reversedWord.length() - 1;
-                    readableWordsArray[readableWordsArrayCount] += "(" + rowIndex + "," + columnIndex + ")" + element;
-                    readableWordsArrayCount++;
+                    fullWord = "(" + rowIndex + "," + columnIndex + ")" + element;
+                    if (!containsInDictionary(readableWordsArray, fullWord)) {
+                        readableWordsArray[readableWordsArrayCount] += fullWord;
+                        readableWordsArrayCount++;
+                    }
                 }
             }
         }
-        //TODO BUGFIX ArrayIndexOutOfBoundsException
         for (int columnIndex = 0; columnIndex < matrix[0].length; columnIndex++) {
             String columnWord = convertColumnToString(matrix, columnIndex);
             for (int elementIndex = 0; elementIndex < dictionary.length; elementIndex++) {
                 String element = dictionary[elementIndex];
                 String reversedWord = reverseString(element);
-                int rowIndex = 0;
-                if (columnWord.contains(element)) {
+                String fullWord;
+                int rowIndex;
+                if (columnWord.contains(element) && !containsInDictionary(hasFoundDictionary, element)) {
                     rowIndex = columnWord.indexOf(element);
-                    readableWordsArray[readableWordsArrayCount] += "(" + rowIndex + "," + columnIndex + ")" + element;
-                    readableWordsArrayCount++;
-                } else if (columnWord.contains(reversedWord)) {
+                    fullWord = "(" + rowIndex + "," + columnIndex + ")" + element;
+                    if (!containsInDictionary(readableWordsArray, fullWord)) {
+                        readableWordsArray[readableWordsArrayCount] += fullWord;
+                        readableWordsArrayCount++;
+                    }
+
+                } else if (columnWord.contains(reversedWord) && !containsInDictionary(hasFoundDictionary, element)) {
                     rowIndex = columnWord.indexOf(reversedWord) + reversedWord.length() - 1;
-                    readableWordsArray[readableWordsArrayCount] += "(" + rowIndex + "," + columnIndex + ")" + element;
-                    readableWordsArrayCount++;
+                    fullWord = "(" + rowIndex + "," + columnIndex + ")" + element;
+                    if (!containsInDictionary(readableWordsArray, fullWord)) {
+                        readableWordsArray[readableWordsArrayCount] += fullWord;
+                        readableWordsArrayCount++;
+                    }
                 }
             }
         }

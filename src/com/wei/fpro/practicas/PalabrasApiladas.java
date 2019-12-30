@@ -417,7 +417,7 @@ public class PalabrasApiladas {
         //Rellenamos la matriz con espacios
         rellenarEspaciosMatriz(matriz);
         //Bucle que inserta cada palabra del diccionario
-        for (int i = 0; i < diccionario.length; i++) {
+        for (int i = cero; i < diccionario.length; i++) {
             String element = diccionario[i];
             //Obtenemos un boolean aleatorio
             booleanAleatorio = obtenerBooleanAleatorio();
@@ -452,10 +452,10 @@ public class PalabrasApiladas {
             //Cuenta de espacios
             int espacios = 0;
             //Bucle que comprueba que hay espacios suficientes
-            for (int columnaIndice = 0; columnaIndice < matriz[0].length; columnaIndice++) {
+            for (int columnaIndice = 0; columnaIndice < matriz[cero].length; columnaIndice++) {
                 String palabraColumna = obtenerPalabraColumna(matriz, columnaIndice);
                 int[] posicionesEspacios = obtenerPosicionEspaciosString(palabraColumna);
-                if (posicionesEspacios.length != 0) {
+                if (posicionesEspacios.length != cero) {
                     espacios += posicionesEspacios.length;
                 }
             }
@@ -464,7 +464,7 @@ public class PalabrasApiladas {
 
             //Comprobamos que hay espacios suficientes
             if (espacios >= palabra.length()) {
-                for (int columnaIndice = 0; columnaIndice < matriz[0].length; columnaIndice++) {
+                for (int columnaIndice = 0; columnaIndice < matriz[cero].length; columnaIndice++) {
                     //Palabra de la columna
                     String palabraColumna = obtenerPalabraColumna(matriz, columnaIndice);
                     //Array de posiciones en blanco
@@ -498,7 +498,7 @@ public class PalabrasApiladas {
         if (tipo == 'F') {
             int espacios = 0;
             //Bucle que comprueba que hay espacios suficientes
-            for (int columnaIndice = 0; columnaIndice < matriz[0].length; columnaIndice++) {
+            for (int columnaIndice = 0; columnaIndice < matriz[cero].length; columnaIndice++) {
                 boolean posibleInsertar = esPosibleInsertarPalabraColumna(matriz, columnaIndice, uno);
                 if (posibleInsertar) {
                     espacios++;
@@ -516,7 +516,7 @@ public class PalabrasApiladas {
                         String palabraColumna = obtenerPalabraColumna(matriz, columnaIndice);
                         //Posiciones de espacios en blanco
                         int[] posicionesEspacios = obtenerPosicionEspaciosString(palabraColumna);
-                        int ultimoIndice = posicionesEspacios.length - 1;
+                        int ultimoIndice = posicionesEspacios.length - uno;
                         //Posicion en blanco == fila
                         int fila = posicionesEspacios[ultimoIndice];
                         //Escribimos la letra correspondiente en la matriz
@@ -543,7 +543,7 @@ public class PalabrasApiladas {
                     //Indice de columna donde es posible insertar la palabra
                     columnaIndice = indice;
                     //Salimos del bucle manualmente
-                    indice = matriz[0].length;
+                    indice = matriz[cero].length;
                 }
                 indice++;
             }
@@ -555,7 +555,7 @@ public class PalabrasApiladas {
                     //Posiciones de espacios en blanco
                     int[] posicionesEspacios = obtenerPosicionEspaciosString(palabraColumna);
                     //Posicion en blanco == fila
-                    int fila = posicionesEspacios[0];
+                    int fila = posicionesEspacios[cero];
                     //Escribimos la letra correspondiente en la matriz
                     matriz[fila][columnaIndice] = palabra.charAt(letraIndice);
                     letraIndice++;
@@ -564,7 +564,7 @@ public class PalabrasApiladas {
                 //No es posible insertar verticalmente, lo probamos horizontalmente
                 //Incrementamos tambien el contador de errores
                 cuentaError++;
-                insertarEnMatriz(matriz, palabra, 'R', cuentaError);
+                insertarEnMatriz(matriz, palabra, 'F', cuentaError);
             }
         }
     }

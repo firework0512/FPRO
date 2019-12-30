@@ -300,7 +300,8 @@ public class PalabrasApiladas {
      * @return el numero aleatorio
      */
     public static int obtenerNumeroAleatorio(int origin, int bound) {
-        return (int) (Math.random() * (bound - origin + 1)) + origin;
+        int uno = 1;
+        return (int) (Math.random() * (bound - origin + uno)) + origin;
     }
 
 
@@ -373,6 +374,17 @@ public class PalabrasApiladas {
         return puntos;
     }
 
+
+    /**
+     * Metodo que resetea la puntuacion del usuario al defecto
+     *
+     * @param file el {@link File} archivo donde hemos guardado previamente la puntuacion
+     * @return true si conseguimos eliminar el archivo, false si no.
+     */
+    public static boolean resetearPuntuacion(File file) {
+        return file.delete();
+    }
+
     /**
      * Metodo que empieza el juego
      *
@@ -387,16 +399,6 @@ public class PalabrasApiladas {
         //Hacemos la gravedad
         gravedad(matriz);
         return matriz;
-    }
-
-    /**
-     * Metodo que resetea la puntuacion del usuario al defecto
-     *
-     * @param file el {@link File} archivo donde hemos guardado previamente la puntuacion
-     * @return true si conseguimos eliminar el archivo, false si no.
-     */
-    public static boolean resetearPuntuacion(File file) {
-        return file.delete();
     }
 
     /**
@@ -850,7 +852,7 @@ public class PalabrasApiladas {
      * @param caracteres el conjunto de caracteres del que vamos a comprobar
      * @return true si es igual a uno del conjunto, en otro caso false
      */
-    public static boolean isEqualsToOne(char caracter, char[] caracteres) {
+    public static boolean esIgualAUno(char caracter, char[] caracteres) {
         boolean resultado = false;
         int contador = 0;
         while (contador < caracteres.length) {
@@ -871,7 +873,7 @@ public class PalabrasApiladas {
      * @param palabras el conjunto de Strings del que vamos a comprobar
      * @return true si es igual a uno del conjunto, en otro caso false
      */
-    public static boolean isEqualsToOne(String palabra, String[] palabras) {
+    public static boolean esIgualAUno(String palabra, String[] palabras) {
         boolean resultado = false;
         int contador = 0;
         while (contador < palabras.length) {
@@ -892,7 +894,7 @@ public class PalabrasApiladas {
      * @param booleans el boolean Array que deseamos comprobar
      * @return true si son todos true, en otro caso false
      */
-    public static boolean isCorrect(boolean[] booleans) {
+    public static boolean sonCorrectas(boolean[] booleans) {
         boolean resultado = true;
         int contador = 0;
         while (contador < booleans.length) {
@@ -927,7 +929,7 @@ public class PalabrasApiladas {
         //Comprobamos que la operacion sea de 3 o 4 caracteres
         if (operacion.length() == 3) {
             String[] pistasCorrectas = new String[]{"LET", "POS", "PAL"};
-            resultado = isEqualsToOne(operacion, pistasCorrectas);
+            resultado = esIgualAUno(operacion, pistasCorrectas);
         } else if (operacion.length() == 4) {
             char filaLetra = operacion.charAt(0);
             char columnaLetra = operacion.charAt(1);
@@ -942,9 +944,9 @@ public class PalabrasApiladas {
             boolean[] multiplesCondiciones = new boolean[]{
                     filaLetra > antesCeroAscii && filaLetra < despuesNueveAscii,
                     columnaLetra > antesCeroAscii && columnaLetra < despuesNueveAscii,
-                    isEqualsToOne(direccionLetra, direccionesCorrectas),
+                    esIgualAUno(direccionLetra, direccionesCorrectas),
                     longitudLetra > antesCeroAscii && longitudLetra < despuesNueveAscii};
-            resultado = isCorrect(multiplesCondiciones);
+            resultado = sonCorrectas(multiplesCondiciones);
             //Si el formato es correcto, comprobamos si el rango de la operacion sea correcta
             if (resultado) {
                 int fila = obtenerNumero(filaLetra);
